@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
-import { ThreeEvent } from '@react-three/fiber'
+import type { ThreeEvent } from '@react-three/fiber'
 import { RenderTexture, Text, OrthographicCamera } from '@react-three/drei'
 import * as THREE from 'three'
 
