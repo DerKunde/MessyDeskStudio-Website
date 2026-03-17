@@ -14,6 +14,7 @@ import { PcTower } from './scene/PcTower'
 import { Keyboard } from './scene/Keyboard'
 import { Mug } from './scene/Mug'
 import { Book } from './scene/Book'
+import { Ashtray } from './scene/Ashtray'
 
 function Scene() {
   const [hint, setHint] = useState(true)
@@ -67,6 +68,7 @@ function Scene() {
 
             <Keyboard position={[0, 2, -0.15]}/>
             <Mug position={[0.2, 2, 0]} />
+            <Ashtray position={[-0.48, 2, -0.18]} />
             <Book position={[0.2, 2, -0.25]} color="#41521F" />
             <Book position={[-0.4, 2, -0.30]} color="#BA1B1D" />
             <Book position={[0.3, 2, -0.20]} color="#6320EE" />
