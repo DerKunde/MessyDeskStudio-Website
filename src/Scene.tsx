@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { Physics } from '@react-three/rapier'
+import { EffectComposer, SMAA } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import './Scene.css'
 
@@ -56,7 +57,7 @@ function Scene() {
               <Monitor />
             </Editable>
             <Editable label="monitor-center" position={[0.146, 1.120, -0.631]} scale={[1.204, 0.752, 1.000]}>
-              <Monitor />
+              <Monitor showLogin />
             </Editable>
             <Editable label="monitor-right" position={[0.672, 1.066, -0.546]} rotation={[0.000, -0.555, 0.000]} scale={[0.481, 1.287, 1.000]}>
               <Monitor />
@@ -77,6 +78,10 @@ function Scene() {
           </Physics>
 
           <TransformGizmo selected={selected} mode={gizmoMode} />
+
+          <EffectComposer multisampling={0}>
+            <SMAA />
+          </EffectComposer>
         </Canvas>
 
         {editMode && (

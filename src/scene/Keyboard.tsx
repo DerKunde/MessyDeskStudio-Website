@@ -8,6 +8,7 @@ import {
   KB_KEY_H, KB_Y_REST, KB_Y_PRESSED, KB_UNIT_D,
 } from './constants'
 import { grab } from './grab'
+import { PostIt } from './PostIt'
 
 export function Keyboard({ position }: { position: [number, number, number] }) {
   const rbRef       = useRef<RapierRigidBody>(null)
@@ -68,6 +69,8 @@ export function Keyboard({ position }: { position: [number, number, number] }) {
           />
         </mesh>
       ))}
+
+      <PostIt position={[0.05, -KB_BASE_H / 2 - 0.001, 0.01]} />
     </RigidBody>
   )
 }
