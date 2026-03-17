@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
-import { useFrame, useThree } from '@react-three/fiber'
+import { ThreeEvent } from '@react-three/fiber'
 import { RenderTexture, Text, OrthographicCamera } from '@react-three/drei'
 import * as THREE from 'three'
 
@@ -11,9 +11,8 @@ export function LoginScreenTexture() {
   const [active, setActive] = useState(false)
   const [blink, setBlink] = useState(true)
   const meshRef = useRef<THREE.Mesh>(null)
-  const { gl, scene, camera } = useThree()
 
-  const handleClick = useCallback((e: THREE.Event) => {
+  const handleClick = useCallback((e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation()
     setActive(true)
   }, [])
