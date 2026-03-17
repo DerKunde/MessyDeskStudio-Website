@@ -29,7 +29,6 @@ jobs:
         run: npm run build
         env:
           VITE_ENV: production
-          VITE_API_URL: ${{ secrets.PROD_API_URL }}
 
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
