@@ -37,7 +37,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./dist/
-          server-dir: /httpdocs/
+          server-dir: /messy-desk-studio.de/httpdocs/
           protocol: ftps
           port: 21
           dangerous-clean-slate: false
