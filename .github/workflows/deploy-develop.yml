@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: development
-      url: ${{ secrets.DEV_URL }}
+      url: ${{ vars.DEV_URL }}
 
     steps:
       - name: Checkout
