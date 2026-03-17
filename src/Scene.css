@@ -4,6 +4,20 @@
   position: relative;
 }
 
+.scene-editor-bar {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(99, 32, 238, 0.85);
+  color: #fff;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
 .scene-hint {
   position: absolute;
   bottom: 16px;
