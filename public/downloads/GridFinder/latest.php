@@ -1,11 +1,12 @@
 <?php
-$files = glob(__DIR__ . '/*.zip');
+$dir = dirname($_SERVER['DOCUMENT_ROOT']) . '/downloads/GridFinder/';
+$files = glob($dir . '*.zip');
 if (!empty($files)) {
-    $file = basename($files[0]);
+    $file = $files[0];
     header('Content-Type: application/octet-stream');
-    header('Content-Disposition: attachment; filename="' . $file . '"');
-    header('Content-Length: ' . filesize($files[0]));
-    readfile($files[0]);
+    header('Content-Disposition: attachment; filename="' . basename($file) . '"');
+    header('Content-Length: ' . filesize($file));
+    readfile($file);
     exit;
 }
 http_response_code(404);
