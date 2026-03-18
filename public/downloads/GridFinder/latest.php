@@ -1,6 +1,5 @@
 <?php
-$dir = dirname($_SERVER['DOCUMENT_ROOT']) . '/downloads/GridFinder/';
-$files = glob($dir . '*.zip');
+$files = glob(__DIR__ . '/*.zip');
 if (!empty($files)) {
     $file = $files[0];
     header('Content-Type: application/octet-stream');
