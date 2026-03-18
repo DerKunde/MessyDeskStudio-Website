@@ -19,7 +19,7 @@ export function LoginScreenTexture() {
     e.stopPropagation()
     if (unlocked) {
       const a = document.createElement('a')
-      a.href = '/downloads/GridFinder/latest.php'
+      a.href = '/httpdocs/downloads/GridFinder/latest.php'
       a.download = ''
       a.click()
     } else {
