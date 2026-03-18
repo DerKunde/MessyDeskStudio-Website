@@ -1,5 +1,9 @@
 <?php
-$files = glob(__DIR__ . '/*.zip');
+$dir = __DIR__ . '/';
+$files = glob($dir . '*.zip');
+if (empty($files)) {
+    $files = glob($dir . '*.ZIP');
+}
 if (!empty($files)) {
     $file = $files[0];
     header('Content-Type: application/octet-stream');
@@ -8,5 +12,7 @@ if (!empty($files)) {
     readfile($file);
     exit;
 }
-http_response_code(404);
-echo 'No file found';
+// Debug: zeigt den Pfad und alle Dateien im Ordner
+echo 'Dir: ' . $dir . '<br>';
+$all = scandir($dir);
+echo 'Files: ' . implode(', ', $all);
