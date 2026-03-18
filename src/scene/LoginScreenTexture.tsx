@@ -19,8 +19,8 @@ export function LoginScreenTexture() {
     e.stopPropagation()
     if (unlocked) {
       const a = document.createElement('a')
-      a.href = '/gridfinder-prototyp.zip'
-      a.download = 'gridfinder-prototyp.zip'
+      a.href = '/downloads/GridFinder/latest.php'
+      a.download = ''
       a.click()
     } else {
       setActive(true)
