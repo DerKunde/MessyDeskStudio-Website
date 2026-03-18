@@ -19,7 +19,7 @@ export function LoginScreenTexture() {
     e.stopPropagation()
     if (unlocked) {
       const a = document.createElement('a')
-      a.href = 'https://mess-desk-studio.de/downloads/GridFinder/latest.php'
+      a.href = 'https://messy-desk-studio.de/downloads/GridFinder/latest.php'
       a.download = ''
       a.click()
     } else {
