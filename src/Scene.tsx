@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { Physics } from '@react-three/rapier'
-import { EffectComposer, SMAA } from '@react-three/postprocessing'
+import { EffectComposer, SMAA, SelectiveBloom } from '@react-three/postprocessing'
+import { Selection, Select } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import './Scene.css'
 
@@ -16,6 +17,7 @@ import { Keyboard } from './scene/Keyboard'
 import { Mug } from './scene/Mug'
 import { Book } from './scene/Book'
 import { Ashtray } from './scene/Ashtray'
+import { NeonSign } from './scene/NeonSign'
 
 function Scene() {
   const [hint, setHint] = useState(true)
@@ -49,6 +51,12 @@ function Scene() {
 
           <CameraController />
 
+          <Selection>
+          <EffectComposer multisampling={0}>
+            <SMAA />
+            <SelectiveBloom luminanceThreshold={0.2} luminanceSmoothing={0.1} intensity={2} mipmapBlur radius={0.3} />
+          </EffectComposer>
+
           <Physics gravity={[0, -9.81, 0]}>
             <Room />
             <Desk />
@@ -74,14 +82,12 @@ function Scene() {
             <Book position={[-0.4, 2, -0.30]} color="#BA1B1D" />
             <Book position={[0.3, 2, -0.20]} color="#6320EE" />
 
+            <Select enabled><NeonSign /></Select>
             <GrabController />
           </Physics>
+          </Selection>
 
           <TransformGizmo selected={selected} mode={gizmoMode} />
-
-          <EffectComposer multisampling={0}>
-            <SMAA />
-          </EffectComposer>
         </Canvas>
 
         {editMode && (
