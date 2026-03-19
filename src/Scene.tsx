@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useInputMode } from './hooks/useInputMode'
 import { Canvas } from '@react-three/fiber'
 import { Physics } from '@react-three/rapier'
 import { EffectComposer, SMAA, SelectiveBloom } from '@react-three/postprocessing'
@@ -20,6 +21,7 @@ import { Ashtray } from './scene/Ashtray'
 import { NeonSign } from './scene/NeonSign'
 
 function Scene() {
+  const inputMode = useInputMode()
   const [hint, setHint] = useState(true)
   const [editMode, setEditMode] = useState(false)
   const [selected, setSelected] = useState<THREE.Object3D | null>(null)
@@ -97,7 +99,12 @@ function Scene() {
           </div>
         )}
         {!editMode && hint && (
-          <div className="scene-hint">LMB = greifen · RMB (beim Greifen) = drehen · Scroll = Abstand · F2 = Editor</div>
+          <div className="scene-hint">
+            {inputMode === 'touch'
+              ? 'Tippen = greifen · 2 Finger (beim Greifen) = drehen & Abstand'
+              : 'LMB = greifen · RMB (beim Greifen) = drehen · Scroll = Abstand · F2 = Editor'
+            }
+          </div>
         )}
       </div>
     </EditorCtx.Provider>
