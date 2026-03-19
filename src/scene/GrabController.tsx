@@ -16,6 +16,8 @@ export function GrabController() {
   const objRotation    = useRef(new THREE.Quaternion())
   const activePointers = useRef(new Map<number, PointerPos>())
   const pinch          = useRef<PinchState | null>(null)
+  const grabOffset     = useRef(new THREE.Vector3())
+  const wasRotating    = useRef(false)
 
   useEffect(() => {
     const canvas = gl.domElement
@@ -43,6 +45,7 @@ export function GrabController() {
       raycaster.current.setFromCamera(mouse.current, camera)
       const target = new THREE.Vector3()
       raycaster.current.ray.at(grab.distance, target)
+      target.add(grabOffset.current)
       grab.body.setTranslation({ x: target.x, y: target.y, z: target.z }, true)
       grab.body.setLinvel({ x: 0, y: 0, z: 0 }, true)
       grab.body.setAngvel({ x: 0, y: 0, z: 0 }, true)
@@ -63,6 +66,11 @@ export function GrabController() {
         const r = grab.body.rotation()
         objRotation.current.set(r.x, r.y, r.z, r.w)
         return
+      }
+
+      if (inputMode === 'mouse' && e.button === 0) {
+        grabOffset.current.set(0, 0, 0)
+        wasRotating.current = false
       }
 
       if (inputMode === 'mouse' && e.button === 2 && grab.body) {
@@ -102,8 +110,20 @@ export function GrabController() {
       lastXY.current = { x: e.clientX, y: e.clientY }
 
       if ((e.buttons & 2) !== 0) {
+        wasRotating.current = true
         applyRotation(dx, dy)
       } else {
+        if (wasRotating.current) {
+          // Erster Move nach RMB-Release: Offset berechnen damit Objekt nicht springt
+          mouse.current.x = (e.clientX / canvas.clientWidth)  *  2 - 1
+          mouse.current.y = (e.clientY / canvas.clientHeight) * -2 + 1
+          raycaster.current.setFromCamera(mouse.current, camera)
+          const rayTarget = new THREE.Vector3()
+          raycaster.current.ray.at(grab.distance, rayTarget)
+          const pos = grab.body.translation()
+          grabOffset.current.set(pos.x - rayTarget.x, pos.y - rayTarget.y, pos.z - rayTarget.z)
+          wasRotating.current = false
+        }
         moveToPoint(e.clientX, e.clientY)
       }
     }
@@ -111,6 +131,7 @@ export function GrabController() {
     const onUp = (e: PointerEvent) => {
       activePointers.current.delete(e.pointerId)
       if (activePointers.current.size < 2) pinch.current = null
+
       const release = inputMode === 'touch'
         ? activePointers.current.size === 0
         : e.button === 0
@@ -124,6 +145,7 @@ export function GrabController() {
       raycaster.current.setFromCamera(mouse.current, camera)
       const target = new THREE.Vector3()
       raycaster.current.ray.at(grab.distance, target)
+      target.add(grabOffset.current)
       grab.body.setTranslation({ x: target.x, y: target.y, z: target.z }, true)
       grab.body.setLinvel({ x: 0, y: 0, z: 0 }, true)
     }
