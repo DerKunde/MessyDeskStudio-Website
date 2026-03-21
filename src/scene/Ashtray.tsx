@@ -4,12 +4,15 @@ import { RigidBody } from '@react-three/rapier'
 import type { RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
 import { grab } from './grab'
+import useRespawn from './useRespawn'
+import { RESPAWN_DELAY } from './constants'
 
 // Anzahl der Sprites die den Faden bilden
 const STRAND_COUNT = 26
 
 export function Ashtray({ position }: { position: [number, number, number] }) {
   const rbRef = useRef<RapierRigidBody>(null)
+  useRespawn(rbRef, position, { delay: RESPAWN_DELAY })
   const emberRef = useRef<THREE.Mesh>(null)
   const smokeOrigin = useRef(new THREE.Vector3())
   const emberMatRef = useRef<THREE.MeshStandardMaterial>(null)

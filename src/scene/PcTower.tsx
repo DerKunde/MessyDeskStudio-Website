@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { RigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
 
 export function PcTower() {
@@ -14,6 +15,7 @@ export function PcTower() {
   })
 
   return (
+    <RigidBody type="fixed" colliders="cuboid">
     <group>
       <mesh castShadow>
         <boxGeometry args={[0.22, 0.96, 0.48]} />
@@ -36,5 +38,6 @@ export function PcTower() {
       {/* RGB light shines left out of the glass panel */}
       <pointLight ref={lightRef} position={[-0.18, 0, 0]} intensity={4} distance={2.2} decay={2} />
     </group>
+    </RigidBody>
   )
 }

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useInputMode } from './hooks/useInputMode'
 import { Canvas } from '@react-three/fiber'
-import { Physics } from '@react-three/rapier'
+import { Physics, CuboidCollider, RigidBody } from '@react-three/rapier'
 import { EffectComposer, SMAA, SelectiveBloom } from '@react-three/postprocessing'
 import { Selection, Select } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import './Scene.css'
 
+import { RESPAWN_FALL_Y } from './scene/constants'
+import { respawnRegistry } from './scene/respawnRegistry'
 import { EditorCtx, Editable, TransformGizmo } from './scene/EditorContext'
 import { CameraController } from './scene/CameraController'
 import { GrabController } from './scene/GrabController'
@@ -23,6 +25,13 @@ import { NeonSign } from './scene/NeonSign'
 function Scene() {
   const inputMode = useInputMode()
   const [hint, setHint] = useState(true)
+
+  useEffect(() => {
+    if (inputMode !== 'touch') return
+    const hide = () => setHint(false)
+    window.addEventListener('touchstart', hide, { once: true })
+    return () => window.removeEventListener('touchstart', hide)
+  }, [inputMode])
   const [editMode, setEditMode] = useState(false)
   const [selected, setSelected] = useState<THREE.Object3D | null>(null)
   const [gizmoMode, setGizmoMode] = useState<'translate' | 'rotate' | 'scale'>('translate')
@@ -41,7 +50,7 @@ function Scene() {
 
   return (
     <EditorCtx.Provider value={{ editMode, select: setSelected }}>
-      <div className="scene-container" onClick={() => setHint(false)}>
+      <div className="scene-container">
         <Canvas
           shadows
           camera={{ position: [0.050, 1.255, 0.404], fov: 90, near: 0.01, far: 100 }}
@@ -86,6 +95,19 @@ function Scene() {
 
             <Select enabled><NeonSign /></Select>
             <GrabController />
+
+            {/* Respawn-Sensor: unsichtbarer Boden, löst Respawn aus wenn Objekte darunter fallen */}
+            <RigidBody
+              type="fixed"
+              sensor
+              position={[0, RESPAWN_FALL_Y, 0]}
+              onIntersectionEnter={({ other }) => {
+                if (!other.rigidBody) return
+                respawnRegistry.get(other.rigidBody)?.()
+              }}
+            >
+              <CuboidCollider args={[50, 0.1, 50]} />
+            </RigidBody>
           </Physics>
           </Selection>
 

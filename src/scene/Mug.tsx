@@ -2,9 +2,12 @@ import { useRef } from 'react'
 import { RigidBody } from '@react-three/rapier'
 import type { RapierRigidBody } from '@react-three/rapier'
 import { grab } from './grab'
+import useRespawn from './useRespawn'
+import { RESPAWN_DELAY } from './constants'
 
 export function Mug({ position }: { position: [number, number, number] }) {
   const rbRef = useRef<RapierRigidBody>(null)
+  useRespawn(rbRef, position, { delay: RESPAWN_DELAY })
   return (
     <RigidBody ref={rbRef} colliders="hull" mass={0.4} restitution={0.2} friction={0.7} ccd position={position}>
       <mesh

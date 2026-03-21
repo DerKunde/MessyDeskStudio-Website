@@ -1,3 +1,4 @@
+import { RigidBody } from '@react-three/rapier'
 import { LoginScreenTexture } from './LoginScreenTexture'
 
 interface MonitorProps {
@@ -6,6 +7,7 @@ interface MonitorProps {
 
 export function Monitor({ showLogin }: MonitorProps) {
   return (
+    <RigidBody type="fixed" colliders="cuboid">
     <group>
       <mesh castShadow>
         <boxGeometry args={[0.68, 0.40, 0.03]} />
@@ -28,5 +30,6 @@ export function Monitor({ showLogin }: MonitorProps) {
         <meshStandardMaterial color="#222" metalness={0.6} roughness={0.4} />
       </mesh>
     </group>
+    </RigidBody>
   )
 }

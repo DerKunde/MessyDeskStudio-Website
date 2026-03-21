@@ -8,10 +8,13 @@ import {
   KB_KEY_H, KB_Y_REST, KB_Y_PRESSED, KB_UNIT_D,
 } from './constants'
 import { grab } from './grab'
+import useRespawn from './useRespawn'
+import { RESPAWN_DELAY } from './constants'
 import { PostIt } from './PostIt'
 
 export function Keyboard({ position }: { position: [number, number, number] }) {
   const rbRef       = useRef<RapierRigidBody>(null)
+  useRespawn(rbRef, position, { delay: RESPAWN_DELAY })
   const pressed     = useRef<Set<string>>(new Set())
   const meshRefs    = useRef<Map<string, THREE.Mesh>>(new Map())
 

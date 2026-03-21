@@ -2,9 +2,12 @@ import { useRef } from 'react'
 import { RigidBody } from '@react-three/rapier'
 import type { RapierRigidBody } from '@react-three/rapier'
 import { grab } from './grab'
+import useRespawn from './useRespawn'
+import { RESPAWN_DELAY } from './constants'
 
 export function Book({ position, color }: { position: [number, number, number]; color: string }) {
   const rbRef = useRef<RapierRigidBody>(null)
+  useRespawn(rbRef, position, { delay: RESPAWN_DELAY })
   return (
     <RigidBody ref={rbRef} colliders="cuboid" mass={0.5} restitution={0.05} friction={0.9} ccd position={position}>
       <mesh
