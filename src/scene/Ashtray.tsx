@@ -6,13 +6,15 @@ import * as THREE from 'three'
 import { grab } from './grab'
 import useRespawn from './useRespawn'
 import { RESPAWN_DELAY } from './constants'
+import { useIgnitable } from './useIgnitable'
 
 // Anzahl der Sprites die den Faden bilden
 const STRAND_COUNT = 26
 
 export function Ashtray({ position }: { position: [number, number, number] }) {
   const rbRef = useRef<RapierRigidBody>(null)
-  useRespawn(rbRef, position, { delay: RESPAWN_DELAY })
+  const { reset, onCollisionEnter, onCollisionExit } = useIgnitable(rbRef, true)
+  useRespawn(rbRef, position, { delay: RESPAWN_DELAY, onRespawn: reset })
   const emberRef = useRef<THREE.Mesh>(null)
   const smokeOrigin = useRef(new THREE.Vector3())
   const emberMatRef = useRef<THREE.MeshStandardMaterial>(null)
@@ -102,6 +104,8 @@ export function Ashtray({ position }: { position: [number, number, number] }) {
         friction={0.8}
         ccd
         position={position}
+        onCollisionEnter={onCollisionEnter}
+        onCollisionExit={onCollisionExit}
       >
         {/* Aschenbecher-Körper */}
         <mesh

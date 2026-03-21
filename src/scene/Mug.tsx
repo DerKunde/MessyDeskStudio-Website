@@ -10,8 +10,8 @@ import { FireEffect } from './FireEffect'
 
 export function Mug({ position }: { position: [number, number, number] }) {
   const rbRef = useRef<RapierRigidBody>(null)
-  useRespawn(rbRef, position, { delay: RESPAWN_DELAY })
-  const { burning, onCollisionEnter, onCollisionExit } = useIgnitable(rbRef)
+  const { burning, onCollisionEnter, onCollisionExit, reset } = useIgnitable(rbRef)
+  useRespawn(rbRef, position, { delay: RESPAWN_DELAY, onRespawn: reset })
 
   return (
     <RigidBody

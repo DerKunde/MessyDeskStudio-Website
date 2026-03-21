@@ -113,17 +113,16 @@ export function Book({ position, color, burning: defaultBurning = false }: {
   color: string
   burning?: boolean
 }) {
-  const rbRef  = useRef<RapierRigidBody>(null)
-  const matRef = useRef<THREE.MeshStandardMaterial>(null)
-  useRespawn(rbRef, position, { delay: RESPAWN_DELAY })
-
-  const { burning, onCollisionEnter, onCollisionExit } = useIgnitable(rbRef, defaultBurning)
-
+  const rbRef      = useRef<RapierRigidBody>(null)
+  const matRef     = useRef<THREE.MeshStandardMaterial>(null)
   const burnTime   = useRef(0)
   const particles  = useRef<(FireParticle | null)[]>([])
   const spriteRefs = useRef<(THREE.Sprite | null)[]>([])
   const burnOrigin = useRef(CORNERS[0].clone())
   const baseColor  = useMemo(() => new THREE.Color(color), [color])
+
+  const { burning, onCollisionEnter, onCollisionExit, reset } = useIgnitable(rbRef, defaultBurning)
+  useRespawn(rbRef, position, { delay: RESPAWN_DELAY, onRespawn: () => { reset(); burnTime.current = 0; particles.current = [] } })
 
   useFrame((_, delta) => {
     if (!burning) return

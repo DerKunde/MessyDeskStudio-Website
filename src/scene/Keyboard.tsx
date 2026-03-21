@@ -17,10 +17,10 @@ import { FireEffect } from './FireEffect'
 
 export function Keyboard({ position }: { position: [number, number, number] }) {
   const rbRef       = useRef<RapierRigidBody>(null)
-  useRespawn(rbRef, position, { delay: RESPAWN_DELAY })
+  const { burning, onCollisionEnter, onCollisionExit, reset } = useIgnitable(rbRef)
+  useRespawn(rbRef, position, { delay: RESPAWN_DELAY, onRespawn: reset })
   const pressed     = useRef<Set<string>>(new Set())
   const meshRefs    = useRef<Map<string, THREE.Mesh>>(new Map())
-  const { burning, onCollisionEnter, onCollisionExit } = useIgnitable(rbRef)
 
   useEffect(() => {
     const onDown = (e: KeyboardEvent) => pressed.current.add(e.code)

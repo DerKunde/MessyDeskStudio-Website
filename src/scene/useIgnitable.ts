@@ -4,7 +4,7 @@ import type { RapierRigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { burningBodies, ignitableRegistry } from './fireRegistry'
 
-const IGNITE_THRESHOLD = 2.5 // Sekunden Kontakt bis Feuer fängt
+const IGNITE_THRESHOLD = 4 // Sekunden Kontakt bis Feuer fängt
 
 export function useIgnitable(rbRef: RefObject<RapierRigidBody | null>, defaultBurning = false) {
   const [burning, setBurning] = useState(defaultBurning)
@@ -47,5 +47,11 @@ export function useIgnitable(rbRef: RefObject<RapierRigidBody | null>, defaultBu
     burningContacts.current.delete(other.rigidBody)
   }, [])
 
-  return { burning, onCollisionEnter, onCollisionExit }
+  const reset = useCallback(() => {
+    setBurning(false)
+    burningContacts.current.clear()
+    contactTime.current = 0
+  }, [])
+
+  return { burning, onCollisionEnter, onCollisionExit, reset }
 }

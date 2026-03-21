@@ -9,19 +9,12 @@ import { grab } from './grab'
 import useRespawn from './useRespawn'
 import { RESPAWN_DELAY } from './constants'
 import { FireEffect } from './FireEffect'
-import { burningBodies } from './fireRegistry'
 
 export function Bottle({ position, scale = 1 }: { position: [number, number, number]; scale?: number | [number, number, number] }) {
   const rbRef = useRef<RapierRigidBody>(null)
   const { scene } = useGLTF(bottleUrl)
-  useRespawn(rbRef, position, { delay: RESPAWN_DELAY })
 
-  useEffect(() => {
-    const rb = rbRef.current
-    if (!rb) return
-    burningBodies.add(rb)
-    return () => { burningBodies.delete(rb) }
-  }, [])
+  useRespawn(rbRef, position, { delay: RESPAWN_DELAY })
 
   useEffect(() => {
     const glassMat = new THREE.MeshPhysicalMaterial({
@@ -42,7 +35,15 @@ export function Bottle({ position, scale = 1 }: { position: [number, number, num
   }, [scene])
 
   return (
-    <RigidBody ref={rbRef} colliders="hull" mass={0.3} restitution={0.05} friction={0.8} ccd position={position}>
+    <RigidBody
+      ref={rbRef}
+      colliders="hull"
+      mass={0.3}
+      restitution={0.05}
+      friction={0.8}
+      ccd
+      position={position}
+    >
       <primitive
         object={scene}
         scale={scale}

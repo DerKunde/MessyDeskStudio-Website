@@ -5,7 +5,8 @@ import { grab } from './grab'
 import { respawnRegistry } from './respawnRegistry'
 
 interface RespawnOptions {
-  delay?: number  // ms, default 0
+  delay?: number     // ms, default 0
+  onRespawn?: () => void
 }
 
 function useRespawn(
@@ -13,8 +14,10 @@ function useRespawn(
   spawnPosition: [number, number, number],
   options: RespawnOptions = {}
 ) {
-  const spawnRef = useRef(spawnPosition)
-  const delayRef = useRef(options.delay ?? 0)
+  const spawnRef     = useRef(spawnPosition)
+  const delayRef     = useRef(options.delay ?? 0)
+  const onRespawnRef = useRef(options.onRespawn)
+  onRespawnRef.current = options.onRespawn  // immer aktuellen Callback halten
 
   useEffect(() => {
     const body = rbRef.current
@@ -34,6 +37,7 @@ function useRespawn(
         b.setLinvel({ x: 0, y: 0, z: 0 }, true)
         b.setAngvel({ x: 0, y: 0, z: 0 }, true)
         b.setBodyType(0, true)
+        onRespawnRef.current?.()
       }
 
       if (delayRef.current > 0) { setTimeout(doRespawn, delayRef.current) }
