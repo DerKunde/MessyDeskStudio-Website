@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { Select } from '@react-three/postprocessing'
 import { RigidBody } from '@react-three/rapier'
 import type { RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
@@ -11,12 +12,15 @@ import { grab } from './grab'
 import useRespawn from './useRespawn'
 import { RESPAWN_DELAY } from './constants'
 import { PostIt } from './PostIt'
+import { useIgnitable } from './useIgnitable'
+import { FireEffect } from './FireEffect'
 
 export function Keyboard({ position }: { position: [number, number, number] }) {
   const rbRef       = useRef<RapierRigidBody>(null)
   useRespawn(rbRef, position, { delay: RESPAWN_DELAY })
   const pressed     = useRef<Set<string>>(new Set())
   const meshRefs    = useRef<Map<string, THREE.Mesh>>(new Map())
+  const { burning, onCollisionEnter, onCollisionExit } = useIgnitable(rbRef)
 
   useEffect(() => {
     const onDown = (e: KeyboardEvent) => pressed.current.add(e.code)
@@ -41,7 +45,17 @@ export function Keyboard({ position }: { position: [number, number, number] }) {
   })
 
   return (
-    <RigidBody ref={rbRef} colliders="cuboid" mass={0.6} restitution={0.1} friction={0.8} ccd position={position}>
+    <RigidBody
+      ref={rbRef}
+      colliders="cuboid"
+      mass={0.6}
+      restitution={0.1}
+      friction={0.8}
+      ccd
+      position={position}
+      onCollisionEnter={onCollisionEnter}
+      onCollisionExit={onCollisionExit}
+    >
       {/* Base plate */}
       <mesh
         castShadow
@@ -74,6 +88,12 @@ export function Keyboard({ position }: { position: [number, number, number] }) {
       ))}
 
       <PostIt position={[0.05, -KB_BASE_H / 2 - 0.001, 0.01]} />
+
+      {burning && (
+        <Select enabled>
+          <FireEffect position={[0, KB_BASE_H / 2 + 0.01, 0]} />
+        </Select>
+      )}
     </RigidBody>
   )
 }

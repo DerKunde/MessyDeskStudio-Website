@@ -21,6 +21,7 @@ import { Mug } from './scene/Mug'
 import { Book } from './scene/Book'
 import { Ashtray } from './scene/Ashtray'
 import { NeonSign } from './scene/NeonSign'
+import { Bottle } from './scene/Bottle'
 
 function Scene() {
   const inputMode = useInputMode()
@@ -90,8 +91,10 @@ function Scene() {
             <Mug position={[0.2, 2, 0]} />
             <Ashtray position={[-0.48, 2, -0.18]} />
             <Book position={[0.2, 2, -0.25]} color="#41521F" />
-            <Book position={[-0.4, 2, -0.30]} color="#BA1B1D" />
+            <Book position={[-0.4, 2, -0.30]} color="#BA1B1D" burning />
             <Book position={[0.3, 2, -0.20]} color="#6320EE" />
+
+            <Bottle position={[0.735, 2, -0.280]} scale={0.1}/>
 
             <Select enabled><NeonSign /></Select>
             <GrabController />
