@@ -6,10 +6,15 @@ export const grab = {
   start(body: RapierRigidBody | null, distance: number) {
     this.body = body
     this.distance = distance
-    body?.setBodyType(2, true) // 2 = KinematicPositionBased → ignoriert Gravity
+    body?.setGravityScale(0, true)
+    body?.setLinearDamping(15)
+    body?.setAngularDamping(15)
   },
   release() {
-    this.body?.setBodyType(0, true) // 0 = Dynamic → Gravity aktiv
+    this.body?.setGravityScale(1, true)
+    this.body?.setLinearDamping(0)
+    this.body?.setAngularDamping(0)
+    this.body?.setLinvel({ x: 0, y: 0, z: 0 }, true)
     this.body = null
   },
 }

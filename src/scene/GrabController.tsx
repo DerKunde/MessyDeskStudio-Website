@@ -46,9 +46,9 @@ export function GrabController() {
       const target = new THREE.Vector3()
       raycaster.current.ray.at(grab.distance, target)
       target.add(grabOffset.current)
-      grab.body.setTranslation({ x: target.x, y: target.y, z: target.z }, true)
-      grab.body.setLinvel({ x: 0, y: 0, z: 0 }, true)
-      grab.body.setAngvel({ x: 0, y: 0, z: 0 }, true)
+      const pos = grab.body.translation()
+      const vel = target.sub(new THREE.Vector3(pos.x, pos.y, pos.z)).multiplyScalar(25)
+      grab.body.setLinvel({ x: vel.x, y: vel.y, z: vel.z }, true)
     }
 
     const onDown = (e: PointerEvent) => {
@@ -146,8 +146,9 @@ export function GrabController() {
       const target = new THREE.Vector3()
       raycaster.current.ray.at(grab.distance, target)
       target.add(grabOffset.current)
-      grab.body.setTranslation({ x: target.x, y: target.y, z: target.z }, true)
-      grab.body.setLinvel({ x: 0, y: 0, z: 0 }, true)
+      const pos = grab.body.translation()
+      const vel = target.sub(new THREE.Vector3(pos.x, pos.y, pos.z)).multiplyScalar(25)
+      grab.body.setLinvel({ x: vel.x, y: vel.y, z: vel.z }, true)
     }
 
     canvas.addEventListener('pointerdown',  onDown)
