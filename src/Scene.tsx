@@ -21,7 +21,7 @@ import { Mug } from './scene/Mug'
 import { Book } from './scene/Book'
 import { Ashtray } from './scene/Ashtray'
 import { NeonSign } from './scene/NeonSign'
-import { Bottle } from './scene/Bottle'
+// import { Bottle } from './scene/Bottle'
 
 function Scene() {
   const inputMode = useInputMode()
