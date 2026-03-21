@@ -34,7 +34,7 @@ export function Mug({ position }: { position: [number, number, number] }) {
       </mesh>
       {burning && (
         <Select enabled>
-          <FireEffect position={[0, 0.06, 0]} />
+          <FireEffect position={[0, 0, 0]} extents={[0.038, 0.05, 0.038]} />
         </Select>
       )}
     </RigidBody>

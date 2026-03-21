@@ -6,7 +6,7 @@ import { burningBodies, ignitableRegistry } from './fireRegistry'
 
 const IGNITE_THRESHOLD = 2.5 // Sekunden Kontakt bis Feuer fängt
 
-export function useIgnitable(rbRef: RefObject<RapierRigidBody>, defaultBurning = false) {
+export function useIgnitable(rbRef: RefObject<RapierRigidBody | null>, defaultBurning = false) {
   const [burning, setBurning] = useState(defaultBurning)
 
   const burningContacts = useRef(new Set<RapierRigidBody>())

@@ -91,7 +91,7 @@ export function Keyboard({ position }: { position: [number, number, number] }) {
 
       {burning && (
         <Select enabled>
-          <FireEffect position={[0, KB_BASE_H / 2 + 0.01, 0]} />
+          <FireEffect position={[0, 0, 0]} extents={[KB_BASE_W / 2, KB_BASE_H / 2, KB_BASE_D / 2]} />
         </Select>
       )}
     </RigidBody>
