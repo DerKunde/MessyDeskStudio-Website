@@ -27,7 +27,7 @@ export function NeonSign() {
   useFrame((_, delta) => {
     t.current += delta
     const flicker =
-      0.88 +
+      1 +
       0.06 * Math.sin(t.current * 8.7) +
       0.04 * Math.sin(t.current * 31.4 + 2.1) +
       0.02 * Math.sin(t.current * 53.2 + 0.7)
