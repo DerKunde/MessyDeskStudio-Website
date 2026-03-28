@@ -34,13 +34,11 @@ export function Html3DRenderer({ children }: { children: ReactNode }) {
     }
   }, [renderer, gl])
 
-  useLayoutEffect(() => {
-    renderer.setSize(size.width, size.height)
-  }, [renderer, size.width, size.height])
-
-  // CSS3D nach WebGL rendern (priority 1 läuft nach dem Standard-Render)
-  useFrame(() => {
-    renderer.render(scene, camera)
+  // setSize + render im selben Frame — verhindert Orientierungs-Mismatch
+  // (setSize berechnet die CSS-Perspektive neu, render verwendet sie sofort)
+  useFrame(({ size: s, scene: sc, camera: cam }) => {
+    renderer.setSize(s.width, s.height)
+    renderer.render(sc, cam)
   }, 1)
 
   return <CSS3DContext.Provider value={renderer}>{children}</CSS3DContext.Provider>
