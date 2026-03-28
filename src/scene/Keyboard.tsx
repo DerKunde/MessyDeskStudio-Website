@@ -62,7 +62,7 @@ export function Keyboard({ position }: { position: [number, number, number] }) {
         onPointerDown={(e) => { if (e.button !== 0) return; e.stopPropagation(); grab.start(rbRef.current, e.distance) }}
       >
         <boxGeometry args={[KB_BASE_W, KB_BASE_H, KB_BASE_D]} />
-        <meshStandardMaterial color="light-grey" roughness={0.5} metalness={1} />
+        <meshStandardMaterial color="lightgray" roughness={0.5} metalness={1} />
       </mesh>
 
       {/* Keycaps */}

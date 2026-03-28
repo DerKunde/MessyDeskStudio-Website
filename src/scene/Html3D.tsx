@@ -14,6 +14,7 @@ export function Html3DRenderer({ children }: { children: ReactNode }) {
 
   useLayoutEffect(() => {
     const dom = renderer.domElement
+    /* eslint-disable react-hooks/immutability */
     dom.style.position = 'absolute'
     dom.style.top = '0'
     dom.style.left = '0'
@@ -25,6 +26,7 @@ export function Html3DRenderer({ children }: { children: ReactNode }) {
     gl.domElement.style.top = '0'
     gl.domElement.style.left = '0'
     gl.domElement.style.zIndex = '10'
+    /* eslint-enable react-hooks/immutability */
 
     gl.domElement.parentElement?.appendChild(dom)
     return () => {
@@ -34,11 +36,7 @@ export function Html3DRenderer({ children }: { children: ReactNode }) {
     }
   }, [renderer, gl])
 
-  // setSize direkt vom Canvas-DOM — verlässlichste Quelle für CSS-Pixel-Dimensionen.
-  // scene.updateMatrixWorld() explizit aufrufen damit Kamera-Matrizen aktuell sind,
-  // bevor CSS3DRenderer sie für die Projektion verwendet.
   useFrame(({ scene: sc, camera: cam }) => {
-    sc.updateMatrixWorld()
     renderer.setSize(gl.domElement.clientWidth, gl.domElement.clientHeight)
     renderer.render(sc, cam)
   }, 1)
@@ -97,7 +95,8 @@ export function Html3D({ children, width, height }: Html3DProps) {
       rootRef.current?.unmount()
       rootRef.current = null
     }
-  }, [el])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [el]) // children-Updates werden im useEffect unten behandelt
 
   // Children aktualisieren wenn sie sich ändern
   useEffect(() => {
@@ -128,6 +127,7 @@ export function Html3D({ children, width, height }: Html3DProps) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useHtml3DRenderer() {
   return useContext(CSS3DContext)
 }

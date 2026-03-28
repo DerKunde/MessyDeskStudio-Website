@@ -71,7 +71,7 @@ export function LoginScreenTexture() {
       position={[0, 0, 0.016]}
       onClick={handleClick}
       onPointerDown={e => e.stopPropagation()}
-      onPointerEnter={e => { if (unlocked) { setHovered(true); e.nativeEvent.target && (document.body.style.cursor = 'pointer') } }}
+      onPointerEnter={e => { if (unlocked) { setHovered(true); if (e.nativeEvent.target) document.body.style.cursor = 'pointer' } }}
       onPointerLeave={() => { setHovered(false); document.body.style.cursor = '' }}
     >
       <boxGeometry args={[0.62, 0.35, 0.001]} />

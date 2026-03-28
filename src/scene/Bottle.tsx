@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react'
+import type { ThreeEvent } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import { Select } from '@react-three/postprocessing'
 import { RigidBody } from '@react-three/rapier'
@@ -8,7 +9,6 @@ import bottleUrl from '../assets/bottle1.glb?url'
 import { grab } from './grab'
 import useRespawn from './useRespawn'
 import { RESPAWN_DELAY } from './constants'
-import { FireEffect } from './FireEffect'
 
 export function Bottle({ position, scale = 1 }: { position: [number, number, number]; scale?: number | [number, number, number] }) {
   const rbRef = useRef<RapierRigidBody>(null)
@@ -47,14 +47,13 @@ export function Bottle({ position, scale = 1 }: { position: [number, number, num
       <primitive
         object={scene}
         scale={scale}
-        onPointerDown={(e: any) => {
+        onPointerDown={(e: ThreeEvent<PointerEvent>) => {
           if (e.button !== 0) return
           e.stopPropagation()
           grab.start(rbRef.current, e.distance)
         }}
       />
       <Select enabled>
-        <FireEffect position={[0, 0.15, 0]} />
       </Select>
     </RigidBody>
   )

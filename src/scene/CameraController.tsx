@@ -3,6 +3,10 @@ import { useThree, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useInputMode } from '../hooks/useInputMode'
 
+type DeviceOrientationEventStatic = typeof DeviceOrientationEvent & {
+  requestPermission: () => Promise<'granted' | 'denied'>
+}
+
 const LOOK_AT    = new THREE.Vector3(0, 1, -1)
 const MAX_OFFSET = 0.12
 const LERP_SPEED = 0.04
@@ -19,7 +23,7 @@ export function CameraController() {
     camera.lookAt(LOOK_AT)
     basePos.current.copy(camera.position)
     targetPos.current.copy(camera.position)
-  }, [])
+  }, [camera])
 
   useEffect(() => {
     if (inputMode !== 'mouse') return
@@ -47,9 +51,9 @@ export function CameraController() {
     const addListener = () => {
       if (
         typeof DeviceOrientationEvent !== 'undefined' &&
-        typeof (DeviceOrientationEvent as any).requestPermission === 'function'
+        typeof (DeviceOrientationEvent as unknown as DeviceOrientationEventStatic).requestPermission === 'function'
       ) {
-        ;(DeviceOrientationEvent as any).requestPermission()
+        ;(DeviceOrientationEvent as unknown as DeviceOrientationEventStatic).requestPermission()
           .then((state: string) => {
             if (state === 'granted') window.addEventListener('deviceorientation', onOrientation)
           })

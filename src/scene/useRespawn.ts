@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { RefObject } from 'react'
 import type { RapierRigidBody } from '@react-three/rapier'
 import { grab } from './grab'
@@ -17,7 +17,7 @@ function useRespawn(
   const spawnRef     = useRef(spawnPosition)
   const delayRef     = useRef(options.delay ?? 0)
   const onRespawnRef = useRef(options.onRespawn)
-  onRespawnRef.current = options.onRespawn  // immer aktuellen Callback halten
+  useLayoutEffect(() => { onRespawnRef.current = options.onRespawn })
 
   useEffect(() => {
     const body = rbRef.current

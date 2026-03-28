@@ -17,7 +17,7 @@ export function useIgnitable(rbRef: RefObject<RapierRigidBody | null>, defaultBu
     if (!rb) return
     ignitableRegistry.set(rb, () => setBurning(true))
     return () => { ignitableRegistry.delete(rb) }
-  }, [])
+  }, [rbRef])
 
   useEffect(() => {
     if (!burning) return
@@ -25,7 +25,7 @@ export function useIgnitable(rbRef: RefObject<RapierRigidBody | null>, defaultBu
     if (!rb) return
     burningBodies.add(rb)
     return () => { burningBodies.delete(rb) }
-  }, [burning])
+  }, [burning, rbRef])
 
   useFrame((_, delta) => {
     if (burning) return

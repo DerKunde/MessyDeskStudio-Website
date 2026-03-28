@@ -1,4 +1,4 @@
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
@@ -110,7 +110,8 @@ export function FireEffect({
   const spriteRefs = useRef<(THREE.Sprite | null)[]>([])
   const particles  = useRef<Particle[]>([])
 
-  if (particles.current.length === 0) {
+  useEffect(() => {
+    particles.current = []
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const p = ext
         ? spawnBox(origin, ext.x, ext.y, ext.z, i * 0.7)
@@ -118,7 +119,7 @@ export function FireEffect({
       p.age = Math.random() * p.maxAge
       particles.current.push(p)
     }
-  }
+  }, [origin, ext])
 
   useFrame((_, delta) => {
     for (let i = 0; i < PARTICLE_COUNT; i++) {

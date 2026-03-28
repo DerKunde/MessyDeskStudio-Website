@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useInputMode } from './hooks/useInputMode'
+import { useProgress } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { Physics, CuboidCollider, RigidBody } from '@react-three/rapier'
-import { EffectComposer, SMAA, SelectiveBloom } from '@react-three/postprocessing'
-import { Selection, Select } from '@react-three/postprocessing'
+import { EffectComposer, SMAA, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import './Scene.css'
 
@@ -25,9 +25,26 @@ import { Bottle } from './scene/Bottle'
 import { Binder } from './scene/Binder'
 import { Html3DRenderer } from './scene/Html3D'
 
+function LoadingTracker({ onProgress }: { onProgress: (p: number) => void }) {
+  const { progress } = useProgress()
+  useEffect(() => { onProgress(progress) }, [progress, onProgress])
+  return null
+}
+
 function Scene() {
   const inputMode = useInputMode()
   const [hint, setHint] = useState(true)
+  const [loadProgress, setLoadProgress] = useState(0)
+  const [physicsReady, setPhysicsReady] = useState(false)
+  const [overlayHidden, setOverlayHidden] = useState(false)
+
+  const handleProgress = useCallback((p: number) => setLoadProgress(p), [])
+
+  useEffect(() => {
+    if (loadProgress < 100) return
+    const t = setTimeout(() => setPhysicsReady(true), 300)
+    return () => clearTimeout(t)
+  }, [loadProgress])
 
   useEffect(() => {
     if (inputMode !== 'touch') return
@@ -35,6 +52,7 @@ function Scene() {
     window.addEventListener('touchstart', hide, { once: true })
     return () => window.removeEventListener('touchstart', hide)
   }, [inputMode])
+
   const [editMode, setEditMode] = useState(false)
   const [selected, setSelected] = useState<THREE.Object3D | null>(null)
   const [gizmoMode, setGizmoMode] = useState<'translate' | 'rotate' | 'scale'>('translate')
@@ -55,24 +73,24 @@ function Scene() {
     <EditorCtx.Provider value={{ editMode, select: setSelected }}>
       <div className="scene-container">
         <Canvas
-          shadows
+          shadows={{ type: THREE.PCFShadowMap }}
           camera={{ position: [0.050, 1.255, 0.404], fov: 90, near: 0.01, far: 100 }}
           gl={{ antialias: true, alpha: true }}
         >
+          <LoadingTracker onProgress={handleProgress} />
+          <Html3DRenderer>
+          <CameraController />
+
           <ambientLight intensity={0.15} />
           <directionalLight castShadow position={[2, 4, 2]} intensity={0.6} shadow-mapSize={[2048, 2048]} />
           <pointLight position={[0, 3.5, -1]} intensity={1.2} color="#ffe4cc" distance={6} decay={2} />
 
-          <Html3DRenderer>
-          <CameraController />
-
-          <Selection>
           <EffectComposer multisampling={0}>
             <SMAA />
-            <SelectiveBloom luminanceThreshold={0.2} luminanceSmoothing={0.1} intensity={2} mipmapBlur radius={0.3} />
+            <Bloom luminanceThreshold={0.85} luminanceSmoothing={0.1} intensity={2} mipmapBlur radius={0.3} />
           </EffectComposer>
 
-          <Physics gravity={[0, -9.81, 0]}>
+          <Physics gravity={[0, -9.81, 0]} paused={!physicsReady}>
             <Room />
             <Desk />
 
@@ -99,7 +117,7 @@ function Scene() {
             <Bottle position={[0.735, 2, -0.280]} scale={0.5}/>
             <Binder position={[-0.4, 2, -0.1]} />
 
-            <Select enabled><NeonSign /></Select>
+            <NeonSign />
             <GrabController />
 
             {/* Respawn-Sensor: unsichtbarer Boden, löst Respawn aus wenn Objekte darunter fallen */}
@@ -115,11 +133,21 @@ function Scene() {
               <CuboidCollider args={[50, 0.1, 50]} />
             </RigidBody>
           </Physics>
-          </Selection>
 
           <TransformGizmo selected={selected} mode={gizmoMode} />
           </Html3DRenderer>
         </Canvas>
+
+        {!overlayHidden && (
+          <div
+            className={`scene-loading${physicsReady ? ' scene-loading--done' : ''}`}
+            onTransitionEnd={() => setOverlayHidden(true)}
+          >
+            <div className="scene-loading__bar-track">
+              <div className="scene-loading__bar-fill" style={{ width: `${loadProgress}%` }} />
+            </div>
+          </div>
+        )}
 
         {editMode && (
           <div className="scene-editor-bar">
