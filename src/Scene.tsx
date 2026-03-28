@@ -22,6 +22,8 @@ import { Book } from './scene/Book'
 import { Ashtray } from './scene/Ashtray'
 import { NeonSign } from './scene/NeonSign'
 import { Bottle } from './scene/Bottle'
+import { Binder } from './scene/Binder'
+import { Html3DRenderer } from './scene/Html3D'
 
 function Scene() {
   const inputMode = useInputMode()
@@ -55,12 +57,13 @@ function Scene() {
         <Canvas
           shadows
           camera={{ position: [0.050, 1.255, 0.404], fov: 90, near: 0.01, far: 100 }}
-          gl={{ antialias: true }}
+          gl={{ antialias: true, alpha: true }}
         >
           <ambientLight intensity={0.15} />
           <directionalLight castShadow position={[2, 4, 2]} intensity={0.6} shadow-mapSize={[2048, 2048]} />
           <pointLight position={[0, 3.5, -1]} intensity={1.2} color="#ffe4cc" distance={6} decay={2} />
 
+          <Html3DRenderer>
           <CameraController />
 
           <Selection>
@@ -94,6 +97,7 @@ function Scene() {
             <Book position={[-0.4, 2, -0.30]} color="#BA1B1D" />
             <Book position={[0.3, 2, -0.20]} color="#6320EE" />
             <Bottle position={[0.735, 2, -0.280]} scale={0.5}/>
+            <Binder position={[-0.4, 2, -0.1]} />
 
             <Select enabled><NeonSign /></Select>
             <GrabController />
@@ -114,6 +118,7 @@ function Scene() {
           </Selection>
 
           <TransformGizmo selected={selected} mode={gizmoMode} />
+          </Html3DRenderer>
         </Canvas>
 
         {editMode && (

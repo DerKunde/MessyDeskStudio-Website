@@ -1,0 +1,37 @@
+.binder-page {
+  width: 175px;
+  height: 245px;
+  background: var(--color-light);
+  color: var(--color-dark);
+  font-family: var(--sans);
+  font-size: 9px;
+  padding: 12px;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-radius: 1px;
+  line-height: 1.4;
+  user-select: text;
+}
+
+.binder-page__title {
+  font-size: 11px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--color-purple);
+  color: var(--color-purple);
+}
+
+.binder-page__text {
+  margin: 0 0 8px 0;
+  line-height: 1.5;
+}
+
+.binder-page__list {
+  margin: 0;
+  padding-left: 14px;
+}
+
+.binder-page__list li {
+  margin-bottom: 4px;
+}

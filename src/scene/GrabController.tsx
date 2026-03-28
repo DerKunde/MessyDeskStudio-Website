@@ -151,16 +151,19 @@ export function GrabController() {
       grab.body.setLinvel({ x: vel.x, y: vel.y, z: vel.z }, true)
     }
 
+    // pointerdown nur auf Canvas (Grabs starten nur dort)
+    // pointermove/pointerup auf window — sonst verliert der GrabController Events
+    // wenn der Zeiger über ein DOM-Overlay fährt (z.B. Html-Komponenten)
     canvas.addEventListener('pointerdown',  onDown)
-    canvas.addEventListener('pointermove',  onMove)
-    canvas.addEventListener('pointerup',    onUp)
+    window.addEventListener('pointermove',  onMove)
+    window.addEventListener('pointerup',    onUp)
     canvas.addEventListener('wheel',        onWheel, { passive: false })
     canvas.addEventListener('contextmenu',  (e) => e.preventDefault())
 
     return () => {
       canvas.removeEventListener('pointerdown', onDown)
-      canvas.removeEventListener('pointermove', onMove)
-      canvas.removeEventListener('pointerup',   onUp)
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup',   onUp)
       canvas.removeEventListener('wheel',       onWheel)
     }
   }, [camera, gl, inputMode])
