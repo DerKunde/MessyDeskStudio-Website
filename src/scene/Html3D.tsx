@@ -9,7 +9,7 @@ import * as THREE from 'three'
 const CSS3DContext = createContext<CSS3DRenderer | null>(null)
 
 export function Html3DRenderer({ children }: { children: ReactNode }) {
-  const { gl, scene, camera, size } = useThree()
+  const { gl } = useThree()
   const renderer = useMemo(() => new CSS3DRenderer(), [])
 
   useLayoutEffect(() => {
