@@ -34,10 +34,12 @@ export function Html3DRenderer({ children }: { children: ReactNode }) {
     }
   }, [renderer, gl])
 
-  // setSize + render im selben Frame — verhindert Orientierungs-Mismatch
-  // (setSize berechnet die CSS-Perspektive neu, render verwendet sie sofort)
-  useFrame(({ size: s, scene: sc, camera: cam }) => {
-    renderer.setSize(s.width, s.height)
+  // setSize direkt vom Canvas-DOM — verlässlichste Quelle für CSS-Pixel-Dimensionen.
+  // scene.updateMatrixWorld() explizit aufrufen damit Kamera-Matrizen aktuell sind,
+  // bevor CSS3DRenderer sie für die Projektion verwendet.
+  useFrame(({ scene: sc, camera: cam }) => {
+    sc.updateMatrixWorld()
+    renderer.setSize(gl.domElement.clientWidth, gl.domElement.clientHeight)
     renderer.render(sc, cam)
   }, 1)
 
