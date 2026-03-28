@@ -44,11 +44,19 @@ export function Binder({ position }: { position: [number, number, number] }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  const [colliderOpen, setColliderOpen] = useState(false)
+
   useFrame((_, delta) => {
     if (!leftCoverRef.current) return
     const target = isOpen ? 0 : Math.PI
     angleRef.current += (target - angleRef.current) * (1 - Math.exp(-delta * 8))
     leftCoverRef.current.rotation.y = angleRef.current
+
+    // Collider erst wechseln wenn Animation fast abgeschlossen (< 5°)
+    const remaining = Math.abs(angleRef.current - target)
+    if (remaining < 0.087) {
+      setColliderOpen(isOpen)
+    }
   })
 
   const onGrab = (e: ThreeEvent<PointerEvent>) => {
@@ -61,14 +69,15 @@ export function Binder({ position }: { position: [number, number, number] }) {
     <RigidBody
       ref={rbRef}
       colliders={false}
+      ccd={true}
       mass={0.3}
       restitution={0.05}
       friction={0.9}
       position={position}
     >
       <CuboidCollider
-        args={isOpen ? [COL_HX_OPEN, COL_HY, COL_HZ] : [COL_HX_CLOSED, COL_HY, COL_HZ]}
-        position={isOpen ? [0, 0, 0] : [COL_X_CLOSED, 0, 0]}
+        args={colliderOpen ? [COL_HX_OPEN, COL_HY, COL_HZ] : [COL_HX_CLOSED, COL_HY, COL_HZ]}
+        position={colliderOpen ? [0, 0, 0] : [COL_X_CLOSED, 0, 0]}
       />
 
       {/* Linke Seite – Scharnier am Rücken (pivot bei x = -SPINE_W/2) */}
