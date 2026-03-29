@@ -109,7 +109,7 @@ function Scene() {
             </Editable>
 
             <Keyboard position={[0, 2, -0.15]}/>
-            <Mug position={[0.2, 2, 0]} />
+            <Mug position={[-0.2, 2, -0.5]} />
             <Ashtray position={[-0.48, 2, -0.18]} />
             <Book position={[0.2, 2, -0.25]} color="#41521F" />
             <Book position={[-0.4, 2, -0.30]} color="#BA1B1D" />
