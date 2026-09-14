@@ -24,6 +24,7 @@ import { NeonSign } from './scene/NeonSign'
 import { Bottle } from './scene/Bottle'
 import { Binder } from './scene/Binder'
 import { Html3DRenderer } from './scene/Html3D'
+import { CursorHint } from './scene/CursorHint'
 
 function LoadingTracker({ onProgress }: { onProgress: (p: number) => void }) {
   const { progress } = useProgress()
@@ -163,6 +164,7 @@ function Scene() {
             }
           </div>
         )}
+        <CursorHint />
       </div>
     </EditorCtx.Provider>
   )

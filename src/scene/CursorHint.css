@@ -1,0 +1,33 @@
+.cursor-hint {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  /* Rechts unterhalb des 32-px-Cursors (Hotspot in der Mitte) */
+  transform: translate(calc(var(--hint-x, -9999px) + 20px), calc(var(--hint-y, -9999px) + 14px));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: var(--color-dark);
+  color: var(--color-light);
+  border: 2px solid var(--color-light);
+  box-shadow: 2px 2px 0 var(--color-purple);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.cursor-hint--visible {
+  opacity: 1;
+}
+
+.cursor-hint__key {
+  padding: 2px 4px;
+  background: var(--color-purple);
+  color: var(--color-light);
+}

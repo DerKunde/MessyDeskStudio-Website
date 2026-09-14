@@ -8,6 +8,7 @@ import * as THREE from 'three'
 import mugUrl from '../assets/coffee_cup.glb?url'
 import { grab } from './grab'
 import useRespawn from './useRespawn'
+import { useHoverCursor } from './useHoverCursor'
 import { RESPAWN_DELAY } from './constants'
 import { useIgnitable } from './useIgnitable'
 import { FireEffect } from './FireEffect'
@@ -17,6 +18,7 @@ export function Mug({ position }: { position: [number, number, number] }) {
   const { scene } = useGLTF(mugUrl)
   const { burning, onCollisionEnter, onCollisionExit, reset } = useIgnitable(rbRef)
   useRespawn(rbRef, position, { delay: RESPAWN_DELAY, onRespawn: reset })
+  const grabCursor = useHoverCursor('grab')
 
   useEffect(() => {
     scene.traverse((obj) => {
@@ -41,6 +43,7 @@ export function Mug({ position }: { position: [number, number, number] }) {
       <primitive
         object={scene}
         scale={0.07}
+        {...grabCursor}
         onPointerDown={(e: ThreeEvent<PointerEvent>) => {
           if (e.button !== 0) return
           e.stopPropagation()

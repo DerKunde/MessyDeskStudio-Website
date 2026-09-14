@@ -6,6 +6,7 @@ import type { RapierRigidBody } from '@react-three/rapier'
 import type { ThreeEvent } from '@react-three/fiber'
 import { grab } from './grab'
 import useRespawn from './useRespawn'
+import { useHoverCursor } from './useHoverCursor'
 import { RESPAWN_DELAY } from './constants'
 import { Html3D } from './Html3D'
 import './Binder.css'
@@ -32,6 +33,7 @@ export function Binder({ position }: { position: [number, number, number] }) {
   const angleRef      = useRef(Math.PI) // startet zugeklappt
 
   useRespawn(rbRef, position, { delay: RESPAWN_DELAY })
+  const grabCursor = useHoverCursor('grab')
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -83,7 +85,7 @@ export function Binder({ position }: { position: [number, number, number] }) {
       {/* Linke Seite – Scharnier am Rücken (pivot bei x = -SPINE_W/2) */}
       <group position={[-SPINE_W / 2, 0, 0]}>
         <group ref={leftCoverRef}>
-          <mesh castShadow position={[-PAGE_W / 2, 0, 0]} onPointerDown={onGrab}>
+          <mesh castShadow position={[-PAGE_W / 2, 0, 0]} {...grabCursor} onPointerDown={onGrab}>
             <boxGeometry args={[PAGE_W, PAGE_H, COVER_D]} />
             <meshStandardMaterial color="#1a1020" roughness={0.7} metalness={0.1} />
           </mesh>
@@ -91,13 +93,13 @@ export function Binder({ position }: { position: [number, number, number] }) {
       </group>
 
       {/* Rücken */}
-      <mesh castShadow position={[0, 0, 0]} onPointerDown={onGrab}>
+      <mesh castShadow position={[0, 0, 0]} {...grabCursor} onPointerDown={onGrab}>
         <boxGeometry args={[SPINE_W, PAGE_H, COVER_D + 0.002]} />
         <meshStandardMaterial color="#6320EE" roughness={0.5} metalness={0.3} />
       </mesh>
 
       {/* Rechte Seite */}
-      <mesh castShadow position={[(SPINE_W / 2 + PAGE_W / 2), 0, 0]} onPointerDown={onGrab}>
+      <mesh castShadow position={[(SPINE_W / 2 + PAGE_W / 2), 0, 0]} {...grabCursor} onPointerDown={onGrab}>
         <boxGeometry args={[PAGE_W, PAGE_H, COVER_D]} />
         <meshStandardMaterial color="#1a1020" roughness={0.7} metalness={0.1} />
       </mesh>

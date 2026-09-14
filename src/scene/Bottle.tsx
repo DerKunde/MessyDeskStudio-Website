@@ -8,6 +8,7 @@ import * as THREE from 'three'
 import bottleUrl from '../assets/bottle1.glb?url'
 import { grab } from './grab'
 import useRespawn from './useRespawn'
+import { useHoverCursor } from './useHoverCursor'
 import { RESPAWN_DELAY } from './constants'
 
 export function Bottle({ position, scale = 1 }: { position: [number, number, number]; scale?: number | [number, number, number] }) {
@@ -15,6 +16,7 @@ export function Bottle({ position, scale = 1 }: { position: [number, number, num
   const { scene } = useGLTF(bottleUrl)
 
   useRespawn(rbRef, position, { delay: RESPAWN_DELAY })
+  const grabCursor = useHoverCursor('grab')
 
   useEffect(() => {
     const glassMat = new THREE.MeshPhysicalMaterial({
@@ -47,6 +49,7 @@ export function Bottle({ position, scale = 1 }: { position: [number, number, num
       <primitive
         object={scene}
         scale={scale}
+        {...grabCursor}
         onPointerDown={(e: ThreeEvent<PointerEvent>) => {
           if (e.button !== 0) return
           e.stopPropagation()

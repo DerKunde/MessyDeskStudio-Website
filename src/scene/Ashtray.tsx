@@ -5,6 +5,7 @@ import type { RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
 import { grab } from './grab'
 import useRespawn from './useRespawn'
+import { useHoverCursor } from './useHoverCursor'
 import { RESPAWN_DELAY } from './constants'
 import { useIgnitable } from './useIgnitable'
 
@@ -140,6 +141,7 @@ export function Ashtray({ position }: { position: [number, number, number] }) {
   const rbRef = useRef<RapierRigidBody>(null)
   const { reset, onCollisionEnter, onCollisionExit } = useIgnitable(rbRef, true)
   useRespawn(rbRef, position, { delay: RESPAWN_DELAY, onRespawn: reset })
+  const grabCursor = useHoverCursor('grab')
 
   const emberRef = useRef<THREE.Mesh>(null)
   const smokeRef = useRef<THREE.Mesh>(null)
@@ -254,6 +256,7 @@ export function Ashtray({ position }: { position: [number, number, number] }) {
         <mesh
           castShadow
           receiveShadow
+          {...grabCursor}
           onPointerDown={(e) => {
             if (e.button !== 0) return
             e.stopPropagation()
