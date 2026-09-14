@@ -4,7 +4,7 @@ import { useGLTF } from '@react-three/drei'
 import { Physics, RigidBody, CuboidCollider } from '@react-three/rapier'
 import * as THREE from 'three'
 import { useInputMode } from './hooks/useInputMode'
-import { CameraController } from './scene/CameraController'
+import { CameraController, type CameraZoom } from './scene/CameraController'
 import { GrabController } from './scene/GrabController'
 import { grab } from './scene/grab'
 import { RESPAWN_FALL_Y } from './scene/constants'
@@ -21,6 +21,11 @@ const CRT_TV_ROTATION_Y = Math.PI
 const TABLE_TOP_Y = 0.8
 const TV_SCREEN_MATERIAL_NAME = 'TVScreen'
 const TUTORIAL_LOOK_AT = new THREE.Vector3(0, 0.4, 0)
+// Nah am Tisch tiefer und mit Blick auf die Tischplatte statt steil nach unten
+const TUTORIAL_ZOOM: CameraZoom = {
+  near: new THREE.Vector3(0, 1.35, 1.1),
+  nearLookAt: new THREE.Vector3(0, 0.75, 0),
+}
 
 function createTestPatternTexture() {
   const canvas = document.createElement('canvas')
@@ -221,7 +226,7 @@ function TutorialScene({ onExit }: { onExit: () => void }) {
         camera={{ position: [0, 1.84, 2.4], fov: 50 }}
       >
         <fog attach="fog" args={['#0a0a0a', 0.1, 8]} />
-        <CameraController lookAt={TUTORIAL_LOOK_AT} />
+        <CameraController lookAt={TUTORIAL_LOOK_AT} zoom={TUTORIAL_ZOOM} />
         <ambientLight intensity={0.2} />
         <spotLight
           position={[0, SPOT_HEIGHT, 0]}
@@ -263,7 +268,7 @@ function TutorialScene({ onExit }: { onExit: () => void }) {
       <div className="tutorial-scene-hint">
         {inputMode === 'touch'
           ? 'Tippen = greifen · 2 Finger (beim Greifen) = drehen & Abstand'
-          : <>LMB = greifen · RMB (beim Greifen) = drehen · Scroll = Abstand · <b>Leertaste</b> = interagieren · <b>F</b> = Hauptszene</>}
+          : <>LMB = greifen · RMB (beim Greifen) = drehen · Scroll = Zoom / Abstand (beim Greifen) ·<b>Leertaste</b> = interagieren · <b>F</b> = Hauptszene</>}
       </div>
       <CursorHint persistent />
     </div>
