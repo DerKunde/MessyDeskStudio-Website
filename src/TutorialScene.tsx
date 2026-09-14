@@ -17,7 +17,7 @@ import { LIGHT_CONE_VERTEX_SHADER, LIGHT_CONE_FRAGMENT_SHADER } from './shaders/
 import { CRT_SCREEN_VERTEX_SHADER, CRT_SCREEN_FRAGMENT_SHADER } from './shaders/crtScreenShader'
 import './TutorialScene.css'
 
-const CRT_TV_URL = '/models/crt_tv/scene.gltf'
+const CRT_TV_URL = '/models/crt_tv/scene.glb'
 const CRT_TV_ROTATION_Y = Math.PI
 const TABLE_TOP_Y = 0.8
 const TV_SCREEN_MATERIAL_NAME = 'TVScreen'

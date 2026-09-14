@@ -12,7 +12,5 @@ if (!empty($files)) {
     readfile($file);
     exit;
 }
-// Debug: zeigt den Pfad und alle Dateien im Ordner
-echo 'Dir: ' . $dir . '<br>';
-$all = scandir($dir);
-echo 'Files: ' . implode(', ', $all);
+http_response_code(404);
+echo 'Download aktuell nicht verfügbar.';
