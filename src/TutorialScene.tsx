@@ -240,7 +240,7 @@ function TutorialScene({ onExit }: { onExit: () => void }) {
           <Floor />
           <Walls />
 
-          <PlayStation position={[0.45, TABLE_TOP_Y + 0.05, 0.1]} />
+          <PlayStation position={[0.45, TABLE_TOP_Y + 0.03, 0.1]} rotation={[0, THREE.MathUtils.degToRad(-35), 0]} />
           <CdDisc position={[-0.45, TABLE_TOP_Y + 0.01, 0.15]} color="#6320EE" />
           <CdDisc position={[-0.41, TABLE_TOP_Y + 0.03, 0.18]} color="#41521F" />
 
@@ -263,7 +263,7 @@ function TutorialScene({ onExit }: { onExit: () => void }) {
       <div className="tutorial-scene-hint">
         {inputMode === 'touch'
           ? 'Tippen = greifen · 2 Finger (beim Greifen) = drehen & Abstand'
-          : <>LMB = greifen · RMB (beim Greifen) = drehen · Scroll = Abstand · <b>F</b> = Hauptszene</>}
+          : <>LMB = greifen · RMB (beim Greifen) = drehen · Scroll = Abstand · <b>Leertaste</b> = interagieren · <b>F</b> = Hauptszene</>}
       </div>
       <CursorHint persistent />
     </div>

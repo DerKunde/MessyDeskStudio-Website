@@ -4,6 +4,10 @@ export const MOVE_SPEED = 4
 export const RESPAWN_FALL_Y  = 0.1    // Y-Höhe unter der Respawn ausgelöst wird
 export const RESPAWN_DELAY   = 800   // ms bis das Objekt zurück auf den Tisch fällt (0 = sofort)
 
+// ─── CD (auch fürs CD-Fach der PlayStation) ──────────────────────────────────
+export const CD_RADIUS    = 0.06
+export const CD_THICKNESS = 0.003
+
 // ─── Keyboard 3D layout constants ────────────────────────────────────────────
 export const KB_UNIT_W  = 0.026
 export const KB_UNIT_D  = 0.022

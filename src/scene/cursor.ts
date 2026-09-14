@@ -5,7 +5,7 @@ export type CursorMode  = HoverCursor | 'grabbing' | 'rotating' | null
 
 const MODES = ['grab', 'grabbing', 'rotating', 'interact'] as const
 
-// Mehrere Einträge können gleichzeitig aktiv sein (z. B. PlayStation-Gehäuse + Open-Taste) –
+// Mehrere Einträge können gleichzeitig aktiv sein (z. B. verschachtelte Objekte mit eigenem Cursor) –
 // Interaktion hat Vorrang vor Greifen, Halten eines Objekts hat Vorrang vor allem
 const hovered   = new Map<string, HoverCursor>()
 const listeners = new Set<() => void>()

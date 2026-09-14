@@ -1,18 +1,17 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { RigidBody, CylinderCollider } from '@react-three/rapier'
 import type { RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
 import { grab } from './grab'
 import useRespawn from './useRespawn'
 import { useHoverCursor } from './useHoverCursor'
-import { RESPAWN_DELAY } from './constants'
+import { cdRegistry } from './cdRegistry'
+import { RESPAWN_DELAY, CD_RADIUS, CD_THICKNESS } from './constants'
 
-const RADIUS      = 0.06
 const HOLE_RADIUS = 0.0075
 const LABEL_INNER = 0.02
-const THICKNESS   = 0.003
 // Collider etwas dicker als die sichtbare Scheibe – sehr dünne Collider zittern oder rutschen durch den Tisch
-const COLLIDER_HALF_HEIGHT = THICKNESS / 2 + 0.001
+const COLLIDER_HALF_HEIGHT = CD_THICKNESS / 2 + 0.001
 
 function ringShape(outer: number, inner: number) {
   const shape = new THREE.Shape()
@@ -24,15 +23,15 @@ function ringShape(outer: number, inner: number) {
 }
 
 // Extrusion entlang z → nach dem Drehen liegt die Scheibe flach, Oberseite zeigt nach +y
-const DISC_GEOMETRY = new THREE.ExtrudeGeometry(ringShape(RADIUS, HOLE_RADIUS), {
-  depth: THICKNESS,
+const DISC_GEOMETRY = new THREE.ExtrudeGeometry(ringShape(CD_RADIUS, HOLE_RADIUS), {
+  depth: CD_THICKNESS,
   bevelEnabled: false,
   curveSegments: 48,
 })
-  .translate(0, 0, -THICKNESS / 2)
+  .translate(0, 0, -CD_THICKNESS / 2)
   .rotateX(-Math.PI / 2)
 
-const LABEL_GEOMETRY = new THREE.ShapeGeometry(ringShape(RADIUS - 0.001, LABEL_INNER), 48)
+const LABEL_GEOMETRY = new THREE.ShapeGeometry(ringShape(CD_RADIUS - 0.001, LABEL_INNER), 48)
   .rotateX(-Math.PI / 2)
 
 export function CdDisc({ position, color }: {
@@ -42,6 +41,13 @@ export function CdDisc({ position, color }: {
   const rbRef = useRef<RapierRigidBody>(null)
   useRespawn(rbRef, position, { delay: RESPAWN_DELAY })
   const grabCursor = useHoverCursor('grab')
+
+  useEffect(() => {
+    const body = rbRef.current
+    if (!body) return
+    cdRegistry.add(body)
+    return () => { cdRegistry.delete(body) }
+  }, [])
 
   return (
     <RigidBody
@@ -54,7 +60,7 @@ export function CdDisc({ position, color }: {
       softCcdPrediction={0.1}
       position={position}
     >
-      <CylinderCollider args={[COLLIDER_HALF_HEIGHT, RADIUS]} mass={0.02} />
+      <CylinderCollider args={[COLLIDER_HALF_HEIGHT, CD_RADIUS]} mass={0.02} />
       <group
         {...grabCursor}
         onPointerDown={(e) => {
@@ -68,7 +74,7 @@ export function CdDisc({ position, color }: {
           <meshStandardMaterial color="#111111" roughness={0.2} metalness={0.8} dithering />
         </mesh>
         {/* Label auf der Oberseite */}
-        <mesh geometry={LABEL_GEOMETRY} position={[0, THICKNESS / 2 + 0.0002, 0]} receiveShadow>
+        <mesh geometry={LABEL_GEOMETRY} position={[0, CD_THICKNESS / 2 + 0.0002, 0]} receiveShadow>
           <meshStandardMaterial color={color} roughness={0.6} dithering />
         </mesh>
       </group>
