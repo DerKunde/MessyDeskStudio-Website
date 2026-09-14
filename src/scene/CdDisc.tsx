@@ -34,9 +34,11 @@ const DISC_GEOMETRY = new THREE.ExtrudeGeometry(ringShape(CD_RADIUS, HOLE_RADIUS
 const LABEL_GEOMETRY = new THREE.ShapeGeometry(ringShape(CD_RADIUS - 0.001, LABEL_INNER), 48)
   .rotateX(-Math.PI / 2)
 
-export function CdDisc({ position, color }: {
+export function CdDisc({ position, color, name, screenColor }: {
   position: [number, number, number]
   color: string
+  name: string          // Anzeigename auf dem TV
+  screenColor: string   // Farbe des Namens auf dem TV
 }) {
   const rbRef = useRef<RapierRigidBody>(null)
   useRespawn(rbRef, position, { delay: RESPAWN_DELAY })
@@ -45,9 +47,9 @@ export function CdDisc({ position, color }: {
   useEffect(() => {
     const body = rbRef.current
     if (!body) return
-    cdRegistry.add(body)
+    cdRegistry.set(body, { name, screenColor })
     return () => { cdRegistry.delete(body) }
-  }, [])
+  }, [name, screenColor])
 
   return (
     <RigidBody

@@ -5,7 +5,7 @@ import type { RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
 import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { grab } from './grab'
-import { cdRegistry } from './cdRegistry'
+import { cdRegistry, insertedDisc } from './cdRegistry'
 import { useHoverCursor } from './useHoverCursor'
 import { CD_THICKNESS } from './constants'
 import { HOLO_VERTEX_SHADER, HOLO_FRAGMENT_SHADER } from '../shaders/holoShader'
@@ -20,6 +20,8 @@ const LID_THICKNESS  = 0.004
 const LID_X          = -0.025
 const LID_Z          = -0.015
 const LID_OPEN_ANGLE = 1.2   // ~70°
+// Der Deckel nähert sich 0 nur an – darunter gilt er als zu (~0,5 s nach dem Schließen)
+const LID_CLOSED_EPSILON = 0.02
 // Scharnier an der oberen Hinterkante – so taucht der Deckel beim Öffnen nicht ins Gehäuse ein
 const HINGE_Y = TOP + LID_THICKNESS
 const HINGE_Z = LID_Z - LID_RADIUS
@@ -172,7 +174,8 @@ export function PlayStation({ position, rotation }: {
         t: 0,
       }
     })
-    return () => { offStart(); offRelease() }
+    // insertedDisc ist global – beim Szenenwechsel keine eingelegte CD zurücklassen
+    return () => { offStart(); offRelease(); insertedDisc.current = null }
   }, [])
 
   useFrame((state, delta) => {
@@ -184,6 +187,10 @@ export function PlayStation({ position, rotation }: {
       lidAngle.current += (target - lidAngle.current) * (1 - Math.exp(-delta * 8))
       lidRef.current.rotation.x = lidAngle.current
     }
+
+    // Der TV erkennt die CD erst, wenn der Deckel fertig zugeklappt ist – nicht schon beim Tastendruck
+    const lidClosed = !lidOpen.current && Math.abs(lidAngle.current) < LID_CLOSED_EPSILON
+    insertedDisc.current = lidClosed && snapped.current ? cdRegistry.get(snapped.current) ?? null : null
 
     // Einrast-Animation: von der Loslass-Position flach auf den Fachboden, mit der Drehung der PlayStation
     const anim = snapAnim.current

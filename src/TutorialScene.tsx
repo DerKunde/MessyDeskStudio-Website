@@ -12,6 +12,7 @@ import { respawnRegistry } from './scene/respawnRegistry'
 import { PlayStation } from './scene/PlayStation'
 import { CdDisc } from './scene/CdDisc'
 import { CursorHint } from './scene/CursorHint'
+import { useTvScreen } from './scene/useTvScreen'
 import { LIGHT_CONE_VERTEX_SHADER, LIGHT_CONE_FRAGMENT_SHADER } from './shaders/lightConeShader'
 import { CRT_SCREEN_VERTEX_SHADER, CRT_SCREEN_FRAGMENT_SHADER } from './shaders/crtScreenShader'
 import './TutorialScene.css'
@@ -27,22 +28,6 @@ const TUTORIAL_ZOOM: CameraZoom = {
   nearLookAt: new THREE.Vector3(0, 0.75, 0),
 }
 
-function createTestPatternTexture() {
-  const canvas = document.createElement('canvas')
-  canvas.width = 256
-  canvas.height = 192
-  const ctx = canvas.getContext('2d')!
-  const bars = ['#c0c0c0', '#c0c000', '#00c0c0', '#00c000', '#c000c0', '#c00000', '#0000c0']
-  const barWidth = canvas.width / bars.length
-  bars.forEach((color, i) => {
-    ctx.fillStyle = color
-    ctx.fillRect(i * barWidth, 0, barWidth, canvas.height)
-  })
-  const texture = new THREE.CanvasTexture(canvas)
-  texture.colorSpace = THREE.SRGBColorSpace
-  return texture
-}
-
 function TableBox() {
   return (
     <RigidBody type="fixed" colliders="cuboid" position={[0, 0.4, 0]}>
@@ -56,13 +41,13 @@ function TableBox() {
 
 function CrtTv() {
   const { scene } = useGLTF(CRT_TV_URL)
-  const testPattern = useMemo(() => createTestPatternTexture(), [])
+  const screenTexture = useTvScreen()
   const screenMaterialRef = useRef<THREE.ShaderMaterial>(null)
 
   const screenUniforms = useMemo(() => ({
-    uMap: { value: testPattern },
+    uMap: { value: screenTexture },
     uTime: { value: 0 },
-  }), [testPattern])
+  }), [screenTexture])
 
   // Bounding-Box im Modell-Space – vor dem Mount berechnet, damit der feste Collider
   // direkt an der richtigen Stelle entsteht (Unterkante auf der Tischplatte)
@@ -108,8 +93,6 @@ function CrtTv() {
 
     return () => crtMaterial.dispose()
   }, [scene, screenUniforms])
-
-  useEffect(() => () => testPattern.dispose(), [testPattern])
 
   return (
     <RigidBody
@@ -246,8 +229,8 @@ function TutorialScene({ onExit }: { onExit: () => void }) {
           <Walls />
 
           <PlayStation position={[0.45, TABLE_TOP_Y + 0.03, 0.1]} rotation={[0, THREE.MathUtils.degToRad(-35), 0]} />
-          <CdDisc position={[-0.45, TABLE_TOP_Y + 0.01, 0.15]} color="#6320EE" />
-          <CdDisc position={[-0.41, TABLE_TOP_Y + 0.03, 0.18]} color="#41521F" />
+          <CdDisc position={[-0.45, TABLE_TOP_Y + 0.01, 0.15]} color="#6320EE" name="PURPLE" screenColor="#9D6BFF" />
+          <CdDisc position={[-0.41, TABLE_TOP_Y + 0.03, 0.18]} color="#41521F" name="GREEN" screenColor="#7CC43A" />
 
           <GrabController />
 
