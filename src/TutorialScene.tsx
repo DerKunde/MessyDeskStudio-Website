@@ -12,7 +12,7 @@ import { respawnRegistry } from './scene/respawnRegistry'
 import { PlayStation } from './scene/PlayStation'
 import { CdDisc } from './scene/CdDisc'
 import { CursorHint } from './scene/CursorHint'
-import { useTvScreen } from './scene/useTvScreen'
+import { useTvScreen, tvScreenState } from './scene/useTvScreen'
 import { LIGHT_CONE_VERTEX_SHADER, LIGHT_CONE_FRAGMENT_SHADER } from './shaders/lightConeShader'
 import { CRT_SCREEN_VERTEX_SHADER, CRT_SCREEN_FRAGMENT_SHADER } from './shaders/crtScreenShader'
 import './TutorialScene.css'
@@ -193,7 +193,8 @@ function TutorialScene({ onExit }: { onExit: () => void }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'f' || e.key === 'F') onExit()
+      // Erst wenn der TV „Press F to play“ zeigt – CD eingelegt und Hauptszene fertig geladen
+      if ((e.key === 'f' || e.key === 'F') && tvScreenState.readyToPlay) onExit()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -251,7 +252,7 @@ function TutorialScene({ onExit }: { onExit: () => void }) {
       <div className="tutorial-scene-hint">
         {inputMode === 'touch'
           ? 'Tippen = greifen · 2 Finger (beim Greifen) = drehen & Abstand'
-          : <>LMB = greifen · RMB (beim Greifen) = drehen · Scroll = Zoom / Abstand (beim Greifen) ·<b>Leertaste</b> = interagieren · <b>F</b> = Hauptszene</>}
+          : <>LMB = greifen · RMB (beim Greifen) = drehen · Scroll = Zoom / Abstand (beim Greifen) ·<b>Leertaste</b> = interagieren · <b>F</b> = Hauptszene (sobald geladen)</>}
       </div>
       <CursorHint persistent />
     </div>

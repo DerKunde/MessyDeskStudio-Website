@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useInputMode } from './hooks/useInputMode'
-import { useProgress } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { Physics, CuboidCollider, RigidBody } from '@react-three/rapier'
 import { EffectComposer, SMAA, Bloom } from '@react-three/postprocessing'
@@ -26,26 +25,22 @@ import { Binder } from './scene/Binder'
 import { Html3DRenderer } from './scene/Html3D'
 import { CursorHint } from './scene/CursorHint'
 
-function LoadingTracker({ onProgress }: { onProgress: (p: number) => void }) {
-  const { progress } = useProgress()
-  useEffect(() => { onProgress(progress) }, [progress, onProgress])
+// Liegt in derselben Suspense-Grenze wie der Szeneninhalt – wird also erst eingehängt, wenn nichts mehr lädt
+function ReadySignal({ onReady }: { onReady: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onReady, 300)
+    return () => clearTimeout(t)
+  }, [onReady])
   return null
 }
 
 function Scene() {
   const inputMode = useInputMode()
   const [hint, setHint] = useState(true)
-  const [loadProgress, setLoadProgress] = useState(0)
   const [physicsReady, setPhysicsReady] = useState(false)
   const [overlayHidden, setOverlayHidden] = useState(false)
 
-  const handleProgress = useCallback((p: number) => setLoadProgress(p), [])
-
-  useEffect(() => {
-    if (loadProgress < 100) return
-    const t = setTimeout(() => setPhysicsReady(true), 300)
-    return () => clearTimeout(t)
-  }, [loadProgress])
+  const handleReady = useCallback(() => setPhysicsReady(true), [])
 
   useEffect(() => {
     if (inputMode !== 'touch') return
@@ -78,7 +73,10 @@ function Scene() {
           camera={{ position: [0.050, 1.255, 0.404], fov: 90, near: 0.01, far: 100 }}
           gl={{ antialias: true, alpha: true }}
         >
-          <LoadingTracker onProgress={handleProgress} />
+          {/* Eigene Suspense-Grenze: ohne sie reicht r3f ladende Inhalte als Suspense nach außen weiter.
+              Die Grenze in App (lazy) würde den Canvas dann ausblenden – und r3f zerstört dabei den WebGL-Kontext */}
+          <Suspense fallback={null}>
+          <ReadySignal onReady={handleReady} />
           <Html3DRenderer>
           <CameraController />
 
@@ -137,17 +135,16 @@ function Scene() {
 
           <TransformGizmo selected={selected} mode={gizmoMode} />
           </Html3DRenderer>
+          </Suspense>
         </Canvas>
 
+        {/* Deckt den leeren, transparenten Canvas ab, bis alles da ist – ohne eigenen Balken,
+            den Ladefortschritt zeigt der TV im Tutorial */}
         {!overlayHidden && (
           <div
             className={`scene-loading${physicsReady ? ' scene-loading--done' : ''}`}
             onTransitionEnd={() => setOverlayHidden(true)}
-          >
-            <div className="scene-loading__bar-track">
-              <div className="scene-loading__bar-fill" style={{ width: `${loadProgress}%` }} />
-            </div>
-          </div>
+          />
         )}
 
         {editMode && (

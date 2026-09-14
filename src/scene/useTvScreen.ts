@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { insertedDisc, type CdInfo } from './cdRegistry'
+import { preloadMainScene, mainSceneLoadProgress } from '../sceneLoader'
 
 const W = 320
 const H = 240
@@ -26,13 +27,16 @@ const BAR_BORDER   = 2
 const BAR_W        = BAR_SEGMENTS * SEG_W + (BAR_SEGMENTS - 1) * SEG_GAP + 2 * (BAR_PADDING + BAR_BORDER)
 const BAR_H        = SEG_H + 2 * (BAR_PADDING + BAR_BORDER)
 const BAR_MARGIN   = 24
-const LOAD_DURATION = 3       // s bis der Balken voll ist
+const LOAD_DURATION = 3       // s, mindestens – voll wird der Balken erst, wenn die Hauptszene geladen ist
 
 type Span = { text: string; color: string }
 
 type Screen =
   | { kind: 'noDisc'; blinkOn: boolean }
   | { kind: 'loading'; disc: CdInfo; filled: number; blinkOn: boolean }
+
+// „Press F to play“ wird angezeigt – die F-Taste der Tutorial-Szene hängt am selben Zustand
+export const tvScreenState = { readyToPlay: false }
 
 let fontRequested = false
 let fontLoaded    = false
@@ -140,6 +144,8 @@ export function useTvScreen() {
 
   useEffect(() => { loadFont() }, [])
   useEffect(() => () => screenCanvas.texture.dispose(), [screenCanvas])
+  // tvScreenState ist global – beim Szenenwechsel nicht „bereit“ zurücklassen
+  useEffect(() => () => { tvScreenState.readyToPlay = false }, [])
 
   useFrame(({ clock }) => {
     const t    = clock.elapsedTime
@@ -147,15 +153,23 @@ export function useTvScreen() {
     if (disc !== seenDisc.current) {
       seenDisc.current  = disc
       loadStart.current = t
+      // Fehler landen in der Konsole – der Balken bleibt dann stehen und F bleibt gesperrt
+      if (disc) preloadMainScene().catch(console.error)
     }
+
+    // Balken folgt dem langsameren von Mindestdauer und echtem Ladefortschritt
+    const timedSegments  = Math.floor(((t - loadStart.current) / LOAD_DURATION) * BAR_SEGMENTS)
+    const loadedSegments = Math.floor(mainSceneLoadProgress() * BAR_SEGMENTS)
+    const filled = disc ? Math.min(BAR_SEGMENTS, timedSegments, loadedSegments) : 0
+    const ready  = fontLoaded && disc !== null && filled === BAR_SEGMENTS
+    tvScreenState.readyToPlay = ready
 
     const blinkOn = Math.floor(t / BLINK_INTERVAL) % 2 === 0
     let screen: Screen | null = null
-    if (fontLoaded && !disc) {
-      screen = { kind: 'noDisc', blinkOn }
-    } else if (fontLoaded && disc) {
-      const filled = Math.min(BAR_SEGMENTS, Math.floor(((t - loadStart.current) / LOAD_DURATION) * BAR_SEGMENTS))
-      screen = { kind: 'loading', disc, filled, blinkOn: filled === BAR_SEGMENTS && blinkOn }
+    if (fontLoaded) {
+      screen = disc
+        ? { kind: 'loading', disc, filled, blinkOn: ready && blinkOn }
+        : { kind: 'noDisc', blinkOn }
     }
     screenCanvas.render(screen)
   })
