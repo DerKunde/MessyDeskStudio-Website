@@ -18,20 +18,20 @@ export const CRT_SCREEN_FRAGMENT_SHADER = /* glsl */ `
   }
 
   void main() {
-    vec2 uv = barrelDistort(vUv, 0.35);
+    vec2 uv = barrelDistort(vUv, 0.5);
 
     if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
       gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
       return;
     }
 
-    float aberration = 0.003;
+    float aberration = 0.006;
     float r = texture2D(uMap, uv + vec2(aberration, 0.0)).r;
     float g = texture2D(uMap, uv).g;
     float b = texture2D(uMap, uv - vec2(aberration, 0.0)).b;
     vec3 color = vec3(r, g, b);
 
-    float scanline = sin(uv.y * 800.0) * 0.04;
+    float scanline = sin(uv.y * 800.0) * 0.08;
     color -= scanline;
 
     vec2 vig = uv - 0.5;

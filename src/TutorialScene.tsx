@@ -206,7 +206,7 @@ function TutorialScene({ onExit }: { onExit: () => void }) {
   return (
     <div className="tutorial-scene-container">
       <Canvas
-        shadows
+        shadows={{ type: THREE.PCFShadowMap }}
         camera={{ position: [0, 1.84, 2.4], fov: 50 }}
       >
         <fog attach="fog" args={['#0a0a0a', 0.1, 8]} />
