@@ -4,8 +4,9 @@ import { cursor } from './cursor'
 import { useInputMode } from '../hooks/useInputMode'
 import './CursorHint.css'
 
-// Label neben dem Cursor beim Halten eines Objekts – verschwindet, sobald einmal gedreht wurde
-export function CursorHint() {
+// Label neben dem Cursor beim Halten eines Objekts – verschwindet, sobald einmal gedreht wurde,
+// außer mit persistent (Tutorial: Hinweis bei jedem Halten)
+export function CursorHint({ persistent = false }: { persistent?: boolean }) {
   const inputMode  = useInputMode()
   const mode       = useSyncExternalStore(cursor.subscribe, cursor.getMode)
   const hasRotated = useSyncExternalStore(cursor.subscribe, cursor.hasRotated)
@@ -24,7 +25,7 @@ export function CursorHint() {
     return () => window.removeEventListener('pointermove', onMove)
   }, [])
 
-  if (inputMode !== 'mouse' || hasRotated) return null
+  if (inputMode !== 'mouse' || (hasRotated && !persistent)) return null
 
   return createPortal(
     <div ref={ref} className={`cursor-hint${mode === 'grabbing' ? ' cursor-hint--visible' : ''}`}>

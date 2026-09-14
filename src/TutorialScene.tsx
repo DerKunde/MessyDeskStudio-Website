@@ -265,7 +265,7 @@ function TutorialScene({ onExit }: { onExit: () => void }) {
           ? 'Tippen = greifen · 2 Finger (beim Greifen) = drehen & Abstand'
           : <>LMB = greifen · RMB (beim Greifen) = drehen · Scroll = Abstand · <b>F</b> = Hauptszene</>}
       </div>
-      <CursorHint />
+      <CursorHint persistent />
     </div>
   )
 }
