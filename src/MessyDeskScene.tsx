@@ -25,13 +25,16 @@ import { Binder } from './scene/Binder'
 import { Html3DRenderer } from './scene/Html3D'
 import { CursorHint } from './scene/CursorHint'
 
-const WARMUP_SMOOTH_FRAMES = 10     // so viele flüssige Frames am Stück, bevor die Szene als bereit gilt
-const WARMUP_MAX_FRAME_S   = 0.034  // ~30 fps – langsamere Frames zählen als Ruckler
-const WARMUP_TIMEOUT_MS    = 5000   // schwache Geräte kommen nie auf flüssige Frames – nicht ewig schwarz lassen
+// Only on local dev and the dev deployment – checks VITE_ENV because the dev deployment is a production build too
+const EDITOR_ENABLED = import.meta.env.VITE_ENV === 'development'
 
-// Liegt in derselben Suspense-Grenze wie der Szeneninhalt – wird also erst eingehängt, wenn nichts mehr lädt.
-// Fertig geladen heißt aber noch nicht flüssig: Shader-Kompilierung, Textur-Uploads, Shadow-Map und der
-// Trimesh-Collider kosten die ersten Frames. Deshalb erst Shader vorkompilieren, dann auf ruhige Frames warten
+const WARMUP_SMOOTH_FRAMES = 10     // consecutive smooth frames required before the scene counts as ready
+const WARMUP_MAX_FRAME_S   = 0.034  // ~30 fps – slower frames count as stutter
+const WARMUP_TIMEOUT_MS    = 5000   // weak devices never reach smooth frames – don't stay black forever
+
+// Lives in the same Suspense boundary as the scene content, so it only mounts once nothing is loading anymore.
+// Loaded doesn't mean smooth yet: shader compilation, texture uploads, the shadow map and the
+// trimesh collider cost the first frames. So precompile shaders first, then wait for smooth frames
 function SceneWarmup({ onReady }: { onReady: () => void }) {
   const { gl, scene, camera } = useThree()
   const compiled     = useRef(false)
@@ -47,7 +50,7 @@ function SceneWarmup({ onReady }: { onReady: () => void }) {
   useEffect(() => {
     let cancelled = false
     gl.compileAsync(scene, camera)
-      .catch(console.error)   // Kompilieren passiert dann eben beim ersten Rendern – das Frame-Warten fängt das ab
+      .catch(console.error)   // compilation then happens on first render instead – waiting for smooth frames covers that
       .finally(() => { if (!cancelled) compiled.current = true })
     const timeout = setTimeout(finish, WARMUP_TIMEOUT_MS)
     return () => {
@@ -69,7 +72,7 @@ function MessyDeskScene() {
   const inputMode = useInputMode()
   const [hint, setHint] = useState(true)
   const [sceneReady, setSceneReady] = useState(false)
-  // Physik läuft erst, wenn das Overlay ganz weg ist – sonst fallen die Objekte ungesehen
+  // Physics only starts once the overlay is fully gone – otherwise objects fall unseen
   const [overlayHidden, setOverlayHidden] = useState(false)
 
   const handleReady = useCallback(() => setSceneReady(true), [])
@@ -86,6 +89,7 @@ function MessyDeskScene() {
   const [gizmoMode, setGizmoMode] = useState<'translate' | 'rotate' | 'scale'>('translate')
 
   useEffect(() => {
+    if (!EDITOR_ENABLED) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'F2')        setEditMode(v => { if (v) setSelected(null); return !v })
       if (e.key === 't' || e.key === 'T') setGizmoMode('translate')
@@ -105,8 +109,8 @@ function MessyDeskScene() {
           camera={{ position: [0.050, 1.255, 0.404], fov: 90, near: 0.01, far: 100 }}
           gl={{ antialias: true, alpha: true }}
         >
-          {/* Eigene Suspense-Grenze: ohne sie reicht r3f ladende Inhalte als Suspense nach außen weiter.
-              Die Grenze in App (lazy) würde den Canvas dann ausblenden – und r3f zerstört dabei den WebGL-Kontext */}
+          {/* Own Suspense boundary: without it r3f passes loading content up as Suspense.
+              The boundary in App (lazy) would then hide the canvas – and r3f destroys the WebGL context in the process */}
           <Suspense fallback={null}>
           <SceneWarmup onReady={handleReady} />
           <Html3DRenderer>
@@ -151,7 +155,7 @@ function MessyDeskScene() {
             <NeonSign />
             <GrabController />
 
-            {/* Respawn-Sensor: unsichtbarer Boden, löst Respawn aus wenn Objekte darunter fallen */}
+            {/* Respawn sensor: invisible floor that triggers a respawn when objects fall below it */}
             <RigidBody
               type="fixed"
               sensor
@@ -170,8 +174,8 @@ function MessyDeskScene() {
           </Suspense>
         </Canvas>
 
-        {/* Deckt den leeren, transparenten Canvas ab, bis alles da ist – ohne eigenen Balken,
-            den Ladefortschritt zeigt der TV im Tutorial */}
+        {/* Covers the empty, transparent canvas until everything is ready – no progress bar of its own,
+            the TV in the tutorial shows the loading progress */}
         {!overlayHidden && (
           <div
             className={`messy-desk-scene-loading${sceneReady ? ' messy-desk-scene-loading--done' : ''}`}
@@ -189,7 +193,7 @@ function MessyDeskScene() {
           <div className="messy-desk-scene-hint">
             {inputMode === 'touch'
               ? 'Tippen = greifen · 2 Finger (beim Greifen) = drehen & Abstand'
-              : 'LMB = greifen · RMB (beim Greifen) = drehen · Scroll = Abstand · F2 = Editor'
+              : 'LMB = greifen · RMB (beim Greifen) = drehen · Scroll = Abstand'
             }
           </div>
         )}

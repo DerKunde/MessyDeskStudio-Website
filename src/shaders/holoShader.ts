@@ -11,8 +11,8 @@ export const HOLO_VERTEX_SHADER = /* glsl */ `
   }
 `
 
-// Wellen laufen nach unten (hin zum CD-Fach): scharfe Unterkante, Schweif nach oben.
-// uPhase wird auf der CPU hochgezählt – so kann sich das Tempo ändern, ohne dass die Wellen springen
+// Waves travel downward (toward the CD tray): sharp bottom edge, tail upward.
+// uPhase is advanced on the CPU – so the speed can change without the waves jumping
 export const HOLO_FRAGMENT_SHADER = /* glsl */ `
   #include <common>
   #include <dithering_pars_fragment>
@@ -33,11 +33,11 @@ export const HOLO_FRAGMENT_SHADER = /* glsl */ `
     float s = fract(y * WAVE_COUNT + uPhase);
     float waves = pow(1.0 - s, 5.0);
 
-    // Oben einblenden, zum Fach hin kräftiger + Grundglühen am Boden
+    // Fade in from the top, stronger toward the tray + base glow at the bottom
     float heightFade = smoothstep(1.0, 0.6, y);
     float baseGlow   = pow(1.0 - y, 3.0) * 0.35;
 
-    // Seiten (Silhouette) heller als die Mitte
+    // Sides (silhouette) brighter than the center
     float facing = abs(dot(normalize(vNormalView), normalize(vViewDir)));
     float rim    = 0.35 + 0.65 * pow(1.0 - facing, 1.5);
 
@@ -47,7 +47,7 @@ export const HOLO_FRAGMENT_SHADER = /* glsl */ `
     float density = (waves * heightFade + baseGlow) * rim * scanlines * flicker * uIntensity;
 
     gl_FragColor = vec4(uColor * density, 1.0);
-    // Wie meshBasicMaterial nach sRGB wandeln – sonst wirkt das Lila dunkler als der Ring am Boden
+    // Convert to sRGB like meshBasicMaterial – otherwise the purple looks darker than the ring at the bottom
     #include <colorspace_fragment>
     #include <dithering_fragment>
   }

@@ -10,8 +10,8 @@ import { RESPAWN_DELAY } from './constants'
 import { useIgnitable } from './useIgnitable'
 
 const SMOKE_HEIGHT = 0.22
-// Wie viele vergangene Positionen gespeichert werden.
-// uv.y=0 → aktueller Frame, uv.y=1 → ältester Eintrag
+// Number of stored past positions.
+// uv.y=0 → current frame, uv.y=1 → oldest entry
 const HISTORY_SIZE = 64
 
 const vertexShader = `
@@ -32,15 +32,15 @@ const vertexShader = `
     pos.x = cos(twist) * r;
     pos.z = sin(twist) * r;
 
-    // S-Kurve: Amplitude wächst mit Bewegungsgeschwindigkeit
+    // S-curve: amplitude grows with movement speed
     float turbulence = clamp(uSpeed * 6.0, 0.0, 1.0);
     float amp = uv.y * uv.y * (0.018 + turbulence * 0.028);
     float phase = uTime * 0.5;
     pos.x += amp * (sin(uv.y * 3.14159 * 2.3 + phase) + 0.4 * sin(uv.y * 3.14159 * 4.8 + phase * 1.7));
     pos.z += amp * 0.35 * sin(uv.y * 3.14159 * 1.9 + phase * 0.8 + 1.1);
 
-    // Physikalischer Trail: jede Höhe zeigt wo die Glut zum Emissionszeitpunkt war.
-    // uv.y=0 → gerade emittiert (aktuelle Position), uv.y=1 → ältester Rauch
+    // Physical trail: each height shows where the ember was at emission time.
+    // uv.y=0 → just emitted (current position), uv.y=1 → oldest smoke
     vec2 histPos = texture2D(uHistoryTex, vec2(uv.y, 0.5)).rg;
     pos.x += histPos.x - uCurrentPos.x;
     pos.z += histPos.y - uCurrentPos.y;
@@ -59,7 +59,7 @@ const fragmentShader = `
     vec2 uv = vec2(vUv.x, vUv.y - uTime * 0.12);
     float noise = texture2D(uTexture, uv).r;
 
-    // Bei hoher Geschwindigkeit: breitere smoothstep-Spanne → fragmentierter, aufgerissener Rauch
+    // At high speed: wider smoothstep range → fragmented, torn-up smoke
     float turbulence = clamp(uSpeed * 6.0, 0.0, 1.0);
     float lo = mix(0.35, 0.18, turbulence);
     float hi = mix(0.65, 0.82, turbulence);
@@ -149,8 +149,8 @@ export function Ashtray({ position }: { position: [number, number, number] }) {
   const emberMatRef = useRef<THREE.MeshStandardMaterial>(null)
   const emberLightRef = useRef<THREE.PointLight>(null)
 
-  // Positionshistory: RGBA-Float-Textur, HISTORY_SIZE × 1
-  // R = world X, G = world Z (Y wird nicht benötigt, da das Mesh sowieso steigt)
+  // Position history: RGBA float texture, HISTORY_SIZE × 1
+  // R = world X, G = world Z (Y isn't needed since the mesh rises anyway)
   const historyData = useRef(new Float32Array(HISTORY_SIZE * 4))
   const historyInitialized = useRef(false)
   const smoothSpeed = useRef(0)
@@ -190,7 +190,7 @@ export function Ashtray({ position }: { position: [number, number, number] }) {
       emberRef.current.getWorldPosition(smokeOrigin.current)
     }
 
-    // History initialisieren sobald die erste echte Ember-Position bekannt ist
+    // Initialize the history once the first real ember position is known
     const d = historyData.current
     if (!historyInitialized.current && smokeOrigin.current.lengthSq() > 0) {
       for (let i = 0; i < HISTORY_SIZE; i++) {
@@ -200,7 +200,7 @@ export function Ashtray({ position }: { position: [number, number, number] }) {
       historyInitialized.current = true
     }
 
-    // Buffer nach vorne schieben, aktuelle Position an Index 0
+    // Shift the buffer forward, current position at index 0
     for (let i = HISTORY_SIZE - 1; i > 0; i--) {
       d[i * 4]     = d[(i - 1) * 4]
       d[i * 4 + 1] = d[(i - 1) * 4 + 1]
@@ -209,7 +209,7 @@ export function Ashtray({ position }: { position: [number, number, number] }) {
     d[1] = smokeOrigin.current.z
     historyTex.needsUpdate = true
 
-    // Geschwindigkeit aus den letzten 8 History-Einträgen ableiten
+    // Derive speed from the last 8 history entries
     const sdx = d[0] - d[8 * 4]
     const sdz = d[1] - d[8 * 4 + 1]
     smoothSpeed.current = THREE.MathUtils.lerp(
@@ -252,7 +252,7 @@ export function Ashtray({ position }: { position: [number, number, number] }) {
         onCollisionEnter={onCollisionEnter}
         onCollisionExit={onCollisionExit}
       >
-        {/* Aschenbecher-Körper */}
+        {/* Ashtray body */}
         <mesh
           castShadow
           receiveShadow
@@ -267,17 +267,17 @@ export function Ashtray({ position }: { position: [number, number, number] }) {
           <meshStandardMaterial color="#252525" roughness={0.35} metalness={0.45} />
         </mesh>
 
-        {/* Innere Vertiefung */}
+        {/* Inner recess */}
         <mesh position={[0, 0.006, 0]}>
           <cylinderGeometry args={[0.05, 0.05, 0.006, 32]} />
           <meshStandardMaterial color="#181818" roughness={0.95} />
         </mesh>
 
-        {/* Zigaretten-Gruppe */}
+        {/* Cigarette */}
         <group position={[0.004, 0.017, 0.008]} rotation={[0, Math.PI / 7, 0]}>
           <group rotation={[0, 0, Math.PI / 15]}>
 
-            {/* Weißer Körper */}
+            {/* Paper body */}
             <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
               <cylinderGeometry args={[0.004, 0.004, 0.068, 12]} />
               <meshStandardMaterial color="#ede9db" roughness={0.95} />
@@ -289,7 +289,7 @@ export function Ashtray({ position }: { position: [number, number, number] }) {
               <meshStandardMaterial color="#c87c32" roughness={0.85} />
             </mesh>
 
-            {/* Glut */}
+            {/* Ember */}
             <mesh ref={emberRef} position={[0.038, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
               <cylinderGeometry args={[0.004, 0.003, 0.008, 12]} />
               <meshStandardMaterial
@@ -313,7 +313,7 @@ export function Ashtray({ position }: { position: [number, number, number] }) {
         </group>
       </RigidBody>
 
-      {/* Rauch — Shader-Plane in World-Space */}
+      {/* Smoke – shader plane in world space, outside the rigid body */}
       <mesh ref={smokeRef} material={smokeMat}>
         <planeGeometry args={[0.014, SMOKE_HEIGHT, 1, 24]} />
       </mesh>

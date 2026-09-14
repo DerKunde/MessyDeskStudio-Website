@@ -4,7 +4,7 @@ import { CSS3DObject, CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRe
 import * as ReactDOMClient from 'react-dom/client'
 import * as THREE from 'three'
 
-// ─── Renderer-Setup ──────────────────────────────────────────────────────────
+// ─── Renderer setup ──────────────────────────────────────────────────────────
 
 const CSS3DContext = createContext<CSS3DRenderer | null>(null)
 
@@ -21,7 +21,7 @@ export function Html3DRenderer({ children }: { children: ReactNode }) {
     dom.style.pointerEvents = 'none'
     dom.style.zIndex = '5'
 
-    // WebGL-Canvas über CSS3D-Layer legen — pointer-events bleibt 'auto' (Grab-Mechanik)
+    // Put the WebGL canvas above the CSS3D layer — pointer-events stays 'auto' (grab mechanics)
     gl.domElement.style.position = 'absolute'
     gl.domElement.style.top = '0'
     gl.domElement.style.left = '0'
@@ -44,7 +44,7 @@ export function Html3DRenderer({ children }: { children: ReactNode }) {
   return <CSS3DContext.Provider value={renderer}>{children}</CSS3DContext.Provider>
 }
 
-// ─── Html3D-Komponente ────────────────────────────────────────────────────────
+// ─── Html3D component ────────────────────────────────────────────────────────
 
 const OCCLUDER_VERT = `
   void main() {
@@ -59,15 +59,15 @@ const OCCLUDER_FRAG = `
 
 interface Html3DProps {
   children: ReactNode
-  /** Breite in World-Units */
+  /** Width in world units */
   width: number
-  /** Höhe in World-Units */
+  /** Height in world units */
   height: number
 }
 
-// 1 CSS-Pixel = SCALE World-Units
-// Div bei width/SCALE × height/SCALE Pixeln → CSS3DObject erscheint in der richtigen Weltgröße
-// CSS3DRenderer benutzt die echte Kameramatrix → geometrisch korrekt auf allen Bildschirmgrößen
+// 1 CSS pixel = SCALE world units
+// A div of width/SCALE × height/SCALE pixels → the CSS3DObject appears at the correct world size
+// CSS3DRenderer uses the real camera matrix → geometrically correct on all screen sizes
 const SCALE = 0.001
 
 export function Html3D({ children, width, height }: Html3DProps) {
@@ -96,9 +96,8 @@ export function Html3D({ children, width, height }: Html3DProps) {
       rootRef.current = null
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [el]) // children-Updates werden im useEffect unten behandelt
+  }, [el]) // children updates are handled by the useEffect below
 
-  // Children aktualisieren wenn sie sich ändern
   useEffect(() => {
     rootRef.current?.render(<>{children}</>)
   }, [children])
@@ -106,10 +105,10 @@ export function Html3D({ children, width, height }: Html3DProps) {
   return (
     <>
       {/*
-        Occluder-Mesh: transparenter Shader + NoBlending
-        → stanzt ein Loch in den WebGL-Canvas wo das HTML sichtbar sein soll.
-        PlaneGeometry (FrontSide): von hinten kein Loch → Rückseite automatisch verdeckt.
-        Andere 3D-Objekte rendern normal über das Loch via Depth-Test → echte Verdeckung.
+        Occluder mesh: transparent shader + NoBlending
+        → punches a hole into the WebGL canvas where the HTML should be visible.
+        PlaneGeometry (FrontSide): no hole from behind → the back side is covered automatically.
+        Other 3D objects render over the hole normally via the depth test → real occlusion.
       */}
       <mesh renderOrder={0}>
         <planeGeometry args={[width, height]} />
@@ -121,7 +120,7 @@ export function Html3D({ children, width, height }: Html3DProps) {
         />
       </mesh>
 
-      {/* CSS3DObject wird vom CSS3DRenderer auf Layer z-index 5 gerendert */}
+      {/* Rendered by the CSS3DRenderer on the z-index 5 layer */}
       <primitive object={css3DObject} />
     </>
   )

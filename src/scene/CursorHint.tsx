@@ -4,16 +4,16 @@ import { cursor } from './cursor'
 import { useInputMode } from '../hooks/useInputMode'
 import './CursorHint.css'
 
-// Label neben dem Cursor beim Halten eines Objekts – verschwindet, sobald einmal gedreht wurde,
-// außer mit persistent (Tutorial: Hinweis bei jedem Halten)
+// Label next to the cursor while holding an object – disappears after the first rotation,
+// unless persistent (tutorial: hint on every hold)
 export function CursorHint({ persistent = false }: { persistent?: boolean }) {
   const inputMode  = useInputMode()
   const mode       = useSyncExternalStore(cursor.subscribe, cursor.getMode)
   const hasRotated = useSyncExternalStore(cursor.subscribe, cursor.hasRotated)
   const ref        = useRef<HTMLDivElement>(null)
 
-  // Position läuft auch unsichtbar mit, damit das Label beim Greifen sofort richtig steht.
-  // Nur die Koordinaten kommen per CSS-Variable, alle Styles liegen in CursorHint.css
+  // The position is tracked even while hidden so the label is in place as soon as something is grabbed.
+  // Only the coordinates are set via CSS variables, all styles live in CursorHint.css
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
       const el = ref.current

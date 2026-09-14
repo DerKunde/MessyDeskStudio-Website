@@ -10,7 +10,7 @@ import { RESPAWN_DELAY, CD_RADIUS, CD_THICKNESS } from './constants'
 
 const HOLE_RADIUS = 0.0075
 const LABEL_INNER = 0.02
-// Collider etwas dicker als die sichtbare Scheibe – sehr dünne Collider zittern oder rutschen durch den Tisch
+// Collider slightly thicker than the visible disc – very thin colliders jitter or slip through the table
 const COLLIDER_HALF_HEIGHT = CD_THICKNESS / 2 + 0.001
 
 function ringShape(outer: number, inner: number) {
@@ -22,7 +22,7 @@ function ringShape(outer: number, inner: number) {
   return shape
 }
 
-// Extrusion entlang z → nach dem Drehen liegt die Scheibe flach, Oberseite zeigt nach +y
+// Extruded along z → after rotating, the disc lies flat with its top facing +y
 const DISC_GEOMETRY = new THREE.ExtrudeGeometry(ringShape(CD_RADIUS, HOLE_RADIUS), {
   depth: CD_THICKNESS,
   bevelEnabled: false,
@@ -37,8 +37,8 @@ const LABEL_GEOMETRY = new THREE.ShapeGeometry(ringShape(CD_RADIUS - 0.001, LABE
 export function CdDisc({ position, color, name, screenColor }: {
   position: [number, number, number]
   color: string
-  name: string          // Anzeigename auf dem TV
-  screenColor: string   // Farbe des Namens auf dem TV
+  name: string          // display name on the TV
+  screenColor: string   // color of the name on the TV
 }) {
   const rbRef = useRef<RapierRigidBody>(null)
   useRespawn(rbRef, position, { delay: RESPAWN_DELAY })
@@ -58,7 +58,7 @@ export function CdDisc({ position, color, name, screenColor }: {
       restitution={0.1}
       friction={0.6}
       ccd
-      // Kontakte schon vor dem Aufprall suchen – sonst steckt die dünne Scheibe beim Fallen/Greifen kurz im Tisch
+      // Look for contacts before impact – otherwise the thin disc briefly sticks in the table when falling/grabbed
       softCcdPrediction={0.1}
       position={position}
     >
@@ -71,11 +71,11 @@ export function CdDisc({ position, color, name, screenColor }: {
           grab.start(rbRef.current, e.distance)
         }}
       >
-        {/* Scheibe – schwarze Datenseite wie bei PS1-Discs */}
+        {/* Disc – black data side like PS1 discs */}
         <mesh geometry={DISC_GEOMETRY} castShadow receiveShadow>
           <meshStandardMaterial color="#111111" roughness={0.2} metalness={0.8} dithering />
         </mesh>
-        {/* Label auf der Oberseite */}
+        {/* Label on top */}
         <mesh geometry={LABEL_GEOMETRY} position={[0, CD_THICKNESS / 2 + 0.0002, 0]} receiveShadow>
           <meshStandardMaterial color={color} roughness={0.6} dithering />
         </mesh>

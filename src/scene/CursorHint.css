@@ -3,7 +3,7 @@
   top: 0;
   left: 0;
   z-index: 1000;
-  /* Rechts unterhalb des 32-px-Cursors (Hotspot in der Mitte) */
+  /* Below and to the right of the 32 px cursor (hotspot in the center) */
   transform: translate(calc(var(--hint-x, -9999px) + 20px), calc(var(--hint-y, -9999px) + 14px));
   display: flex;
   align-items: center;

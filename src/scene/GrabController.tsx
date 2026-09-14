@@ -20,7 +20,7 @@ export function GrabController() {
   const grabOffset     = useRef(new THREE.Vector3())
   const wasRotating    = useRef(false)
 
-  // Szenenwechsel während ein Objekt gehalten wird – Greif-Cursor nicht hängen lassen
+  // Scene change while an object is held – don't leave the grab cursor stuck
   useEffect(() => () => cursor.setGrabbing(false), [])
 
   useEffect(() => {
@@ -113,8 +113,8 @@ export function GrabController() {
       const dy = e.clientY - lastXY.current.y
       lastXY.current = { x: e.clientX, y: e.clientY }
 
-      // RMB bei gehaltener LMB kommt als pointermove an (Chorded Button), nicht als pointerdown/up –
-      // deshalb wird der Dreh-Cursor hier über e.buttons gesteuert
+      // RMB while LMB is held arrives as pointermove (chorded button), not as pointerdown/up –
+      // so the rotate cursor is driven by e.buttons here
       if ((e.buttons & 2) !== 0) {
         wasRotating.current = true
         cursor.setRotating(true)
@@ -122,7 +122,7 @@ export function GrabController() {
       } else {
         cursor.setRotating(false)
         if (wasRotating.current) {
-          // Erster Move nach RMB-Release: Offset berechnen damit Objekt nicht springt
+          // First move after RMB release: compute an offset so the object doesn't jump
           mouse.current.x = (e.clientX / canvas.clientWidth)  *  2 - 1
           mouse.current.y = (e.clientY / canvas.clientHeight) * -2 + 1
           raycaster.current.setFromCamera(mouse.current, camera)
@@ -159,9 +159,9 @@ export function GrabController() {
       grab.body.setLinvel({ x: vel.x, y: vel.y, z: vel.z }, true)
     }
 
-    // pointerdown nur auf Canvas (Grabs starten nur dort)
-    // pointermove/pointerup auf window — sonst verliert der GrabController Events
-    // wenn der Zeiger über ein DOM-Overlay fährt (z.B. Html-Komponenten)
+    // pointerdown only on the canvas (grabs only start there)
+    // pointermove/pointerup on window — otherwise the GrabController loses events
+    // when the pointer passes over a DOM overlay (e.g. Html3D components)
     canvas.addEventListener('pointerdown',  onDown)
     window.addEventListener('pointermove',  onMove)
     window.addEventListener('pointerup',    onUp)

@@ -4,7 +4,7 @@ import TopBar from './TopBar'
 import TutorialScene from './TutorialScene'
 import { preloadMessyDeskScene } from './sceneLoader'
 
-// Nicht schon beim Seitenstart laden – das passiert, sobald im Tutorial eine CD eingelegt wird (useTvScreen)
+// Not loaded on page start – that happens once a CD is inserted in the tutorial (useTvScreen)
 const MessyDeskScene = lazy(preloadMessyDeskScene)
 
 type SceneKey = 'tutorial' | 'messyDesk'
@@ -37,7 +37,7 @@ function App() {
       <div className="app-wrapper">
         {currentScene === 'tutorial'
           ? <TutorialScene onExit={() => switchScene('messyDesk')} />
-          // MessyDeskScene fängt das Laden im Canvas mit einer eigenen Suspense-Grenze ab – diese hier wartet nur auf den Code
+          // MessyDeskScene handles asset loading inside the canvas with its own Suspense boundary – this one only waits for the code
           : <Suspense fallback={null}><MessyDeskScene /></Suspense>}
         <div
           className={`scene-transition-overlay${transitionPhase === 'hiding' ? ' scene-transition-overlay--active' : ''}`}

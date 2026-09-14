@@ -13,14 +13,14 @@ import { useIgnitable } from './useIgnitable'
 const BURN_DURATION = 12
 const FIRE_COUNT = 45
 
-const HX   = 0.06   // halbe Breite
-const HZ   = 0.09   // halbe Tiefe
-const HY   = 0.01   // halbe Höhe (Buch ist 0.02 dick)
+const HX   = 0.06   // half width
+const HZ   = 0.09   // half depth
+const HY   = 0.01   // half height (the book is 0.02 thick)
 const MAX_RADIUS = Math.sqrt((2 * HX) ** 2 + (2 * HZ) ** 2)
 
 const CHARRED = new THREE.Color('#1a0800')
 
-// Ecken für Rotation-Tracking (Weltkoordinaten → niedrigste = Brennursprung)
+// Top corners for rotation tracking (lowest in world space = burn origin)
 const CORNERS = [
   new THREE.Vector3(-HX, HY, -HZ),
   new THREE.Vector3( HX, HY, -HZ),
@@ -28,34 +28,34 @@ const CORNERS = [
   new THREE.Vector3( HX, HY,  HZ),
 ]
 
-// Alle 5 sichtbaren Flächen des Buches
+// All 6 faces of the book – fire particles spawn on them, weighted by area
 const FACES = [
-  { // Oben
+  { // top
     normal: new THREE.Vector3(0, 1, 0),
     area: 2 * HX * 2 * HZ,
     sample: () => new THREE.Vector3((Math.random() - 0.5) * 2 * HX,  HY, (Math.random() - 0.5) * 2 * HZ),
   },
-  { // Vorne (z+)
+  { // front (z+)
     normal: new THREE.Vector3(0, 0, 1),
     area: 2 * HX * 2 * HY,
     sample: () => new THREE.Vector3((Math.random() - 0.5) * 2 * HX, (Math.random() - 0.5) * 2 * HY,  HZ),
   },
-  { // Hinten (z-)
+  { // back (z-)
     normal: new THREE.Vector3(0, 0, -1),
     area: 2 * HX * 2 * HY,
     sample: () => new THREE.Vector3((Math.random() - 0.5) * 2 * HX, (Math.random() - 0.5) * 2 * HY, -HZ),
   },
-  { // Links (x-)
+  { // left (x-)
     normal: new THREE.Vector3(-1, 0, 0),
     area: 2 * HY * 2 * HZ,
     sample: () => new THREE.Vector3(-HX, (Math.random() - 0.5) * 2 * HY, (Math.random() - 0.5) * 2 * HZ),
   },
-  { // Rechts (x+)
+  { // right (x+)
     normal: new THREE.Vector3(1, 0, 0),
     area: 2 * HY * 2 * HZ,
     sample: () => new THREE.Vector3( HX, (Math.random() - 0.5) * 2 * HY, (Math.random() - 0.5) * 2 * HZ),
   },
-  { // Unten (y-)
+  { // bottom (y-)
     normal: new THREE.Vector3(0, -1, 0),
     area: 2 * HX * 2 * HZ,
     sample: () => new THREE.Vector3((Math.random() - 0.5) * 2 * HX, -HY, (Math.random() - 0.5) * 2 * HZ),
@@ -73,7 +73,7 @@ interface FireParticle {
 
 function spawnOnFront(origin: THREE.Vector3, radius: number, phase: number): FireParticle | null {
   for (let attempt = 0; attempt < 15; attempt++) {
-    // Fläche gewichtet nach Größe wählen
+    // Pick a face weighted by area
     let r = Math.random() * TOTAL_AREA
     let face = FACES[FACES.length - 1]
     for (const f of FACES) {
@@ -83,7 +83,7 @@ function spawnOnFront(origin: THREE.Vector3, radius: number, phase: number): Fir
 
     const pos = face.sample()
 
-    // Prüfen ob Punkt innerhalb des aktuellen Burn-Radius liegt (XZ-Distanz vom Ursprung)
+    // Only accept points within the current burn radius (XZ distance from the origin)
     const dx = pos.x - origin.x
     const dz = pos.z - origin.z
     const dist = Math.sqrt(dx * dx + dz * dz)
@@ -129,7 +129,7 @@ export function Book({ position, color, burning: defaultBurning = false }: {
   useFrame((_, delta) => {
     if (!burning) return
 
-    // Niedrigste Ecke in Weltkoordinaten → Brennursprung
+    // Lowest corner in world space → burn origin
     const rb = rbRef.current
     if (rb) {
       const rot = rb.rotation()

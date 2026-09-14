@@ -4,7 +4,7 @@ import type { RapierRigidBody } from '@react-three/rapier'
 import { useFrame } from '@react-three/fiber'
 import { burningBodies, ignitableRegistry } from './fireRegistry'
 
-const IGNITE_THRESHOLD = 4 // Sekunden Kontakt bis Feuer fängt
+const IGNITE_THRESHOLD = 4 // seconds of contact until it catches fire
 
 export function useIgnitable(rbRef: RefObject<RapierRigidBody | null>, defaultBurning = false) {
   const [burning, setBurning] = useState(defaultBurning)

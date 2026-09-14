@@ -1,6 +1,6 @@
-/* Pixel-Cursor (16er-Raster, 2× skaliert) – Standard-Cursor als Fallback.
-   Hand-Cursor teilen sich den Hotspot 16 16, damit das Bild beim Wechsel nicht springt.
-   SVGs liegen in public/ – relative url()-Pfade schreibt Vite im Dev-Modus nicht um */
+/* Pixel cursors (16 px grid, scaled 2×) – standard cursors as fallback.
+   Hand cursors share the hotspot 16 16 so the image doesn't jump when switching.
+   SVGs live in public/ – Vite doesn't rewrite relative url() paths in dev mode */
 
 body.cursor-grab {
   cursor: url('/cursors/grab.svg') 16 16, grab;

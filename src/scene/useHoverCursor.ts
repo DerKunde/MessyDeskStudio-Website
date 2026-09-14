@@ -3,8 +3,8 @@ import type { ThreeEvent } from '@react-three/fiber'
 import { cursor } from './cursor'
 import type { HoverCursor } from './cursor'
 
-// Liefert onPointerOver/onPointerOut zum Spreaden auf das Mesh bzw. die Gruppe.
-// stopPropagation: nur das vorderste Objekt bestimmt den Cursor, nicht was dahinter liegt
+// Returns onPointerOver/onPointerOut to spread onto a mesh or group.
+// stopPropagation: only the frontmost object determines the cursor, not what's behind it
 export function useHoverCursor(kind: HoverCursor) {
   const id = useId()
 

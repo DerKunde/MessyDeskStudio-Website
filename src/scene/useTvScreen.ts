@@ -7,7 +7,7 @@ import { preloadMessyDeskScene, messyDeskSceneLoadProgress } from '../sceneLoade
 const W = 320
 const H = 240
 
-// Press Start 2P ist auf ein 8-px-Raster gebaut – Vielfache davon bleiben pixelgenau
+// Press Start 2P is built on an 8 px grid – multiples of it stay pixel-perfect
 const FONT_FAMILY = 'Press Start 2P'
 const FONT_URL    = '/PressStart2P.ttf'
 const FONT_SIZE   = 16
@@ -16,7 +16,7 @@ const LINE_GAP    = 16
 
 const TEXT_COLOR = '#FFFFFF'
 const BG_COLOR   = '#000000'
-const BLINK_INTERVAL = 0.53   // s, wie der Cursor im Login-Screen
+const BLINK_INTERVAL = 0.53   // s, same as the cursor on the login screen
 
 const BAR_SEGMENTS = 16
 const SEG_W        = 10
@@ -27,7 +27,7 @@ const BAR_BORDER   = 2
 const BAR_W        = BAR_SEGMENTS * SEG_W + (BAR_SEGMENTS - 1) * SEG_GAP + 2 * (BAR_PADDING + BAR_BORDER)
 const BAR_H        = SEG_H + 2 * (BAR_PADDING + BAR_BORDER)
 const BAR_MARGIN   = 24
-const LOAD_DURATION = 3       // s, mindestens – voll wird der Balken erst, wenn die Hauptszene geladen ist
+const LOAD_DURATION = 3       // s, minimum – the bar only fills up once the main scene has loaded
 
 type Span = { text: string; color: string }
 
@@ -35,23 +35,23 @@ type Screen =
   | { kind: 'noDisc'; blinkOn: boolean }
   | { kind: 'loading'; disc: CdInfo; filled: number; blinkOn: boolean }
 
-// „Press F to play“ wird angezeigt – die F-Taste der Tutorial-Szene hängt am selben Zustand
+// "Press F to play" is shown – the tutorial scene's F key reads the same state
 export const tvScreenState = { readyToPlay: false }
 
 let fontRequested = false
 let fontLoaded    = false
 
-// Einmalig laden – der Canvas zeichnet sonst mit der Ersatzschrift, bevor die Datei da ist
+// Load once – otherwise the canvas draws with the fallback font before the file has arrived
 function loadFont() {
   if (fontRequested) return
   fontRequested = true
   new FontFace(FONT_FAMILY, `url(${FONT_URL})`).load()
     .then((face) => { document.fonts.add(face) })
-    .catch(() => {})   // Fallback: monospace
+    .catch(() => {})   // fallback: monospace
     .finally(() => { fontLoaded = true })
 }
 
-// Zeile mittig, Teile in eigener Farbe. Grundlinie auf ganzen Pixeln, damit die Pixelschrift scharf bleibt
+// Centered line, each span in its own color. Baseline on whole pixels so the pixel font stays sharp
 function drawLine(ctx: CanvasRenderingContext2D, spans: Span[], top: number) {
   const full = spans.map((s) => s.text).join('')
   let x = Math.round((W - ctx.measureText(full).width) / 2)
@@ -62,7 +62,7 @@ function drawLine(ctx: CanvasRenderingContext2D, spans: Span[], top: number) {
   }
 }
 
-// Weißer Rahmen mit abgeschnittenen Ecken, darin einzelne Blöcke in der Disc-Farbe
+// White frame with clipped corners, filled with individual blocks in the disc color
 function drawLoadingBar(ctx: CanvasRenderingContext2D, top: number, filled: number, color: string) {
   const left = Math.round((W - BAR_W) / 2)
   ctx.fillStyle = TEXT_COLOR
@@ -80,7 +80,7 @@ function drawLoadingBar(ctx: CanvasRenderingContext2D, top: number, filled: numb
   }
 }
 
-// null = Schrift noch nicht geladen → nur schwarz
+// null = font not loaded yet → black only
 function drawScreen(ctx: CanvasRenderingContext2D, screen: Screen | null) {
   ctx.fillStyle = BG_COLOR
   ctx.fillRect(0, 0, W, H)
@@ -97,7 +97,7 @@ function drawScreen(ctx: CanvasRenderingContext2D, screen: Screen | null) {
     return
   }
 
-  // Platz für „Press F to play“ ist von Anfang an reserviert, damit der Block nicht springt
+  // Space for "Press F to play" is reserved from the start so the block doesn't jump
   const blockHeight = 3 * FONT_SIZE + LINE_GAP + 2 * BAR_MARGIN + BAR_H
   let top = (H - blockHeight) / 2
   drawLine(ctx, [{ text: screen.disc.name, color: screen.disc.screenColor }, { text: ' DISC FOUND', color: TEXT_COLOR }], top)
@@ -115,7 +115,7 @@ function createScreenCanvas() {
   canvas.height = H
   const ctx = canvas.getContext('2d')!
 
-  // Nearest statt linear – die Pixel der Schrift bleiben hart
+  // Nearest instead of linear – keeps the font's pixels crisp
   const texture = new THREE.CanvasTexture(canvas)
   texture.colorSpace      = THREE.SRGBColorSpace
   texture.magFilter       = THREE.NearestFilter
@@ -125,7 +125,7 @@ function createScreenCanvas() {
   let lastKey = ''
   return {
     texture,
-    // Nur neu zeichnen und hochladen, wenn sich sichtbar etwas ändert
+    // Only redraw and upload when something visibly changes
     render(screen: Screen | null) {
       const key = JSON.stringify(screen)
       if (key === lastKey) return
@@ -136,7 +136,7 @@ function createScreenCanvas() {
   }
 }
 
-// TV-Bild abhängig von der eingelegten CD: „No disc“ → Ladebalken → „Press F to play“
+// TV image depending on the inserted CD: "No disc" → loading bar → "Press F to play"
 export function useTvScreen() {
   const screenCanvas = useMemo(() => createScreenCanvas(), [])
   const seenDisc  = useRef<CdInfo | null>(null)
@@ -144,7 +144,7 @@ export function useTvScreen() {
 
   useEffect(() => { loadFont() }, [])
   useEffect(() => () => screenCanvas.texture.dispose(), [screenCanvas])
-  // tvScreenState ist global – beim Szenenwechsel nicht „bereit“ zurücklassen
+  // tvScreenState is global – don't leave it "ready" on scene change
   useEffect(() => () => { tvScreenState.readyToPlay = false }, [])
 
   useFrame(({ clock }) => {
@@ -153,11 +153,11 @@ export function useTvScreen() {
     if (disc !== seenDisc.current) {
       seenDisc.current  = disc
       loadStart.current = t
-      // Fehler landen in der Konsole – der Balken bleibt dann stehen und F bleibt gesperrt
+      // Errors go to the console – the bar then stalls and F stays locked
       if (disc) preloadMessyDeskScene().catch(console.error)
     }
 
-    // Balken folgt dem langsameren von Mindestdauer und echtem Ladefortschritt
+    // The bar follows the slower of minimum duration and actual load progress
     const timedSegments  = Math.floor(((t - loadStart.current) / LOAD_DURATION) * BAR_SEGMENTS)
     const loadedSegments = Math.floor(messyDeskSceneLoadProgress() * BAR_SEGMENTS)
     const filled = disc ? Math.min(BAR_SEGMENTS, timedSegments, loadedSegments) : 0

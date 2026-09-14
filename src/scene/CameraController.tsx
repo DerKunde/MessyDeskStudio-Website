@@ -8,8 +8,8 @@ type DeviceOrientationEventStatic = typeof DeviceOrientationEvent & {
   requestPermission: () => Promise<'granted' | 'denied'>
 }
 
-// Mausrad-Zoom (ohne gegriffenes Objekt): Kamera fährt von der Startposition zu `near`
-// und blickt dabei von `lookAt` zu `nearLookAt`
+// Mouse wheel zoom (without a grabbed object): the camera moves from its start position to `near`
+// while its gaze shifts from `lookAt` to `nearLookAt`
 export type CameraZoom = {
   near: THREE.Vector3
   nearLookAt?: THREE.Vector3
@@ -45,7 +45,7 @@ export function CameraController({ lookAt = LOOK_AT, zoom }: { lookAt?: THREE.Ve
     if (!zoom) return
     const canvas = gl.domElement
     const onWheel = (e: WheelEvent) => {
-      // Mit gegriffenem Objekt steuert das Mausrad den Greifabstand (GrabController)
+      // With a grabbed object the mouse wheel controls the grab distance (GrabController)
       if (grab.body) return
       e.preventDefault()
       zoomT.current = THREE.MathUtils.clamp(zoomT.current - e.deltaY * ZOOM_SPEED, 0, 1)
@@ -99,20 +99,10 @@ export function CameraController({ lookAt = LOOK_AT, zoom }: { lookAt?: THREE.Ve
     }
   }, [inputMode])
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'p') return
-      const p = camera.position
-      console.log(`camera position: [${p.x.toFixed(3)}, ${p.y.toFixed(3)}, ${p.z.toFixed(3)}]`)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [camera])
-
   useFrame(() => {
     if (zoom) {
       const t = zoomT.current
-      // x/z linear, y mit Ease-In – die Kamera sinkt erst kaum, nah am Ziel dann stärker ab
+      // x/z linear, y with ease-in – the camera barely sinks at first, then drops more near the target
       basePos.current.set(
         THREE.MathUtils.lerp(farPos.current.x, zoom.near.x, t),
         THREE.MathUtils.lerp(farPos.current.y, zoom.near.y, t * t),

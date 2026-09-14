@@ -1,7 +1,7 @@
 import type { RapierRigidBody } from '@react-three/rapier'
 
-/** Alle RigidBodies die aktuell brennen */
+/** All rigid bodies that are currently burning */
 export const burningBodies = new Set<RapierRigidBody>()
 
-/** RigidBody → Zünde-Callback für alle brennbaren Objekte */
+/** Rigid body → ignite callback, for all flammable objects */
 export const ignitableRegistry = new Map<RapierRigidBody, () => void>()

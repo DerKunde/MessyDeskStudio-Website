@@ -3,7 +3,7 @@ import { cursor } from './cursor'
 
 type GrabListener = (body: RapierRigidBody) => void
 
-// Slots wie das CD-Fach der PlayStation reagieren auf Greifen/Loslassen bestimmter Körper
+// Slots like the PlayStation's CD tray react to specific bodies being grabbed/released
 const startListeners   = new Set<GrabListener>()
 const releaseListeners = new Set<GrabListener>()
 
@@ -16,8 +16,8 @@ export const grab = {
   body: null as RapierRigidBody | null,
   distance: 0,
   start(body: RapierRigidBody | null, distance: number) {
-    // Listener zuerst – z. B. macht das CD-Fach eine eingelegte (kinematische) CD wieder dynamisch,
-    // bevor Schwerkraft und Dämpfung fürs Halten gesetzt werden
+    // Listeners first – e.g. the CD tray makes an inserted (kinematic) CD dynamic again
+    // before gravity and damping for holding are set
     if (body) startListeners.forEach((l) => l(body))
     this.body = body
     this.distance = distance
@@ -34,7 +34,7 @@ export const grab = {
     body?.setLinvel({ x: 0, y: 0, z: 0 }, true)
     this.body = null
     cursor.setGrabbing(false)
-    // Listener zuletzt – der Körper hat dann wieder normale Schwerkraft und keine Restgeschwindigkeit
+    // Listeners last – the body then has normal gravity again and no leftover velocity
     if (body) releaseListeners.forEach((l) => l(body))
   },
   onStart:   (listener: GrabListener) => subscribe(startListeners, listener),

@@ -16,13 +16,13 @@ const PAGE_W  = 0.175
 const PAGE_H  = 0.245
 const COVER_D = 0.004
 
-// Collider offen: beide Seiten aufgeklappt
+// Collider when open: both sides unfolded
 const COL_HX_OPEN   = (SPINE_W + 2 * PAGE_W) / 2
 const COL_HY        = PAGE_H / 2
 const COL_HZ        = (COVER_D + 0.002) / 2
 
-// Collider geschlossen: linker Deckel liegt über rechtem
-// Binder spannt von x=-SPINE_W/2 bis x=SPINE_W/2+PAGE_W
+// Collider when closed: the left cover lies on top of the right one,
+// so the binder spans from x=-SPINE_W/2 to x=SPINE_W/2+PAGE_W
 const COL_HX_CLOSED = (SPINE_W + PAGE_W) / 2
 const COL_X_CLOSED  = PAGE_W / 2
 
@@ -30,7 +30,7 @@ export function Binder({ position }: { position: [number, number, number] }) {
   const rbRef         = useRef<RapierRigidBody>(null)
   const [isOpen, setIsOpen] = useState(false)
   const leftCoverRef  = useRef<THREE.Group>(null)
-  const angleRef      = useRef(Math.PI) // startet zugeklappt
+  const angleRef      = useRef(Math.PI) // starts closed
 
   useRespawn(rbRef, position, { delay: RESPAWN_DELAY })
   const grabCursor = useHoverCursor('grab')
@@ -54,7 +54,7 @@ export function Binder({ position }: { position: [number, number, number] }) {
     angleRef.current += (target - angleRef.current) * (1 - Math.exp(-delta * 8))
     leftCoverRef.current.rotation.y = angleRef.current
 
-    // Collider erst wechseln wenn Animation fast abgeschlossen (< 5°)
+    // Only switch the collider once the animation is nearly done (< 5°)
     const remaining = Math.abs(angleRef.current - target)
     if (remaining < 0.087) {
       setColliderOpen(isOpen)
@@ -82,7 +82,7 @@ export function Binder({ position }: { position: [number, number, number] }) {
         position={colliderOpen ? [0, 0, 0] : [COL_X_CLOSED, 0, 0]}
       />
 
-      {/* Linke Seite – Scharnier am Rücken (pivot bei x = -SPINE_W/2) */}
+      {/* Left cover – hinged at the spine (pivot at x = -SPINE_W/2) */}
       <group position={[-SPINE_W / 2, 0, 0]}>
         <group ref={leftCoverRef}>
           <mesh castShadow position={[-PAGE_W / 2, 0, 0]} {...grabCursor} onPointerDown={onGrab}>
@@ -92,19 +92,19 @@ export function Binder({ position }: { position: [number, number, number] }) {
         </group>
       </group>
 
-      {/* Rücken */}
+      {/* Spine */}
       <mesh castShadow position={[0, 0, 0]} {...grabCursor} onPointerDown={onGrab}>
         <boxGeometry args={[SPINE_W, PAGE_H, COVER_D + 0.002]} />
         <meshStandardMaterial color="#6320EE" roughness={0.5} metalness={0.3} />
       </mesh>
 
-      {/* Rechte Seite */}
+      {/* Right cover */}
       <mesh castShadow position={[(SPINE_W / 2 + PAGE_W / 2), 0, 0]} {...grabCursor} onPointerDown={onGrab}>
         <boxGeometry args={[PAGE_W, PAGE_H, COVER_D]} />
         <meshStandardMaterial color="#1a1020" roughness={0.7} metalness={0.1} />
       </mesh>
 
-      {/* HTML-Seite: nur wenn geöffnet */}
+      {/* HTML page, only mounted while open */}
       {isOpen && (
         <group position={[SPINE_W / 2 + PAGE_W / 2, 0, COVER_D / 2 + 0.001]}>
           <Html3D width={PAGE_W} height={PAGE_H}>

@@ -1,10 +1,10 @@
 export const MOVE_SPEED = 4
 
 // ─── Respawn settings ─────────────────────────────────────────────────────────
-export const RESPAWN_FALL_Y  = 0.1    // Y-Höhe unter der Respawn ausgelöst wird
-export const RESPAWN_DELAY   = 800   // ms bis das Objekt zurück auf den Tisch fällt (0 = sofort)
+export const RESPAWN_FALL_Y  = 0.1    // Y height below which a respawn is triggered
+export const RESPAWN_DELAY   = 800   // ms until the object drops back onto the desk (0 = immediately)
 
-// ─── CD (auch fürs CD-Fach der PlayStation) ──────────────────────────────────
+// ─── CD (also used by the PlayStation's CD tray) ─────────────────────────────
 export const CD_RADIUS    = 0.06
 export const CD_THICKNESS = 0.003
 

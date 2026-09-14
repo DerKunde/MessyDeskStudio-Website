@@ -5,8 +5,8 @@ export type CursorMode  = HoverCursor | 'grabbing' | 'rotating' | null
 
 const MODES = ['grab', 'grabbing', 'rotating', 'interact'] as const
 
-// Mehrere Einträge können gleichzeitig aktiv sein (z. B. verschachtelte Objekte mit eigenem Cursor) –
-// Interaktion hat Vorrang vor Greifen, Halten eines Objekts hat Vorrang vor allem
+// Several entries can be active at once (e.g. nested objects with their own cursor) –
+// interact takes precedence over grab, holding an object takes precedence over everything
 const hovered   = new Map<string, HoverCursor>()
 const listeners = new Set<() => void>()
 let grabbing    = false
@@ -44,7 +44,7 @@ export const cursor = {
     if (!value) rotating = false
     apply()
   },
-  // Drehen gibt es nur beim Halten – wird beim Loslassen über setGrabbing(false) mit zurückgesetzt
+  // Rotating only exists while holding – setGrabbing(false) resets it on release
   setRotating(value: boolean) {
     if (rotating === value || (value && !grabbing)) return
     rotating = value
@@ -52,7 +52,7 @@ export const cursor = {
     apply()
   },
 
-  // Für useSyncExternalStore
+  // For useSyncExternalStore
   subscribe(listener: () => void) {
     listeners.add(listener)
     return () => { listeners.delete(listener) }

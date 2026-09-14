@@ -21,5 +21,5 @@ export function Desk() {
   )
 }
 
-// Beim Laden des Szenen-Codes vorab laden – wie die GLB-Modelle, siehe sceneLoader
+// Preload as soon as the scene code loads – like the GLB models, see sceneLoader
 useLoader.preload(FBXLoader, deskUrl)

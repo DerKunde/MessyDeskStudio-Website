@@ -21,7 +21,7 @@ export function PcTower() {
         <boxGeometry args={[0.22, 0.96, 0.48]} />
         <meshStandardMaterial color="#1a1a1a" roughness={0.3} metalness={0.7} />
       </mesh>
-      {/* glass panel – linke Seite */}
+      {/* Glass panel – left side */}
       <mesh position={[-0.112, 0, 0]}>
         <boxGeometry args={[0.004, 0.92, 0.44]} />
         <meshStandardMaterial
