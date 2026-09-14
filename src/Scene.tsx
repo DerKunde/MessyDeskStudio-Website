@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
 import { useInputMode } from './hooks/useInputMode'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Physics, CuboidCollider, RigidBody } from '@react-three/rapier'
 import { EffectComposer, SMAA, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
@@ -25,22 +25,54 @@ import { Binder } from './scene/Binder'
 import { Html3DRenderer } from './scene/Html3D'
 import { CursorHint } from './scene/CursorHint'
 
-// Liegt in derselben Suspense-Grenze wie der Szeneninhalt – wird also erst eingehängt, wenn nichts mehr lädt
-function ReadySignal({ onReady }: { onReady: () => void }) {
-  useEffect(() => {
-    const t = setTimeout(onReady, 300)
-    return () => clearTimeout(t)
+const WARMUP_SMOOTH_FRAMES = 10     // so viele flüssige Frames am Stück, bevor die Szene als bereit gilt
+const WARMUP_MAX_FRAME_S   = 0.034  // ~30 fps – langsamere Frames zählen als Ruckler
+const WARMUP_TIMEOUT_MS    = 5000   // schwache Geräte kommen nie auf flüssige Frames – nicht ewig schwarz lassen
+
+// Liegt in derselben Suspense-Grenze wie der Szeneninhalt – wird also erst eingehängt, wenn nichts mehr lädt.
+// Fertig geladen heißt aber noch nicht flüssig: Shader-Kompilierung, Textur-Uploads, Shadow-Map und der
+// Trimesh-Collider kosten die ersten Frames. Deshalb erst Shader vorkompilieren, dann auf ruhige Frames warten
+function SceneWarmup({ onReady }: { onReady: () => void }) {
+  const { gl, scene, camera } = useThree()
+  const compiled     = useRef(false)
+  const smoothFrames = useRef(0)
+  const done         = useRef(false)
+
+  const finish = useCallback(() => {
+    if (done.current) return
+    done.current = true
+    onReady()
   }, [onReady])
+
+  useEffect(() => {
+    let cancelled = false
+    gl.compileAsync(scene, camera)
+      .catch(console.error)   // Kompilieren passiert dann eben beim ersten Rendern – das Frame-Warten fängt das ab
+      .finally(() => { if (!cancelled) compiled.current = true })
+    const timeout = setTimeout(finish, WARMUP_TIMEOUT_MS)
+    return () => {
+      cancelled = true
+      clearTimeout(timeout)
+    }
+  }, [gl, scene, camera, finish])
+
+  useFrame((_, delta) => {
+    if (!compiled.current || done.current) return
+    smoothFrames.current = delta < WARMUP_MAX_FRAME_S ? smoothFrames.current + 1 : 0
+    if (smoothFrames.current >= WARMUP_SMOOTH_FRAMES) finish()
+  })
+
   return null
 }
 
 function Scene() {
   const inputMode = useInputMode()
   const [hint, setHint] = useState(true)
-  const [physicsReady, setPhysicsReady] = useState(false)
+  const [sceneReady, setSceneReady] = useState(false)
+  // Physik läuft erst, wenn das Overlay ganz weg ist – sonst fallen die Objekte ungesehen
   const [overlayHidden, setOverlayHidden] = useState(false)
 
-  const handleReady = useCallback(() => setPhysicsReady(true), [])
+  const handleReady = useCallback(() => setSceneReady(true), [])
 
   useEffect(() => {
     if (inputMode !== 'touch') return
@@ -76,7 +108,7 @@ function Scene() {
           {/* Eigene Suspense-Grenze: ohne sie reicht r3f ladende Inhalte als Suspense nach außen weiter.
               Die Grenze in App (lazy) würde den Canvas dann ausblenden – und r3f zerstört dabei den WebGL-Kontext */}
           <Suspense fallback={null}>
-          <ReadySignal onReady={handleReady} />
+          <SceneWarmup onReady={handleReady} />
           <Html3DRenderer>
           <CameraController />
 
@@ -89,7 +121,7 @@ function Scene() {
             <Bloom luminanceThreshold={0.85} luminanceSmoothing={0.1} intensity={2} mipmapBlur radius={0.3} />
           </EffectComposer>
 
-          <Physics gravity={[0, -9.81, 0]} paused={!physicsReady}>
+          <Physics gravity={[0, -9.81, 0]} paused={!overlayHidden}>
             <Room />
             <Desk />
 
@@ -142,7 +174,7 @@ function Scene() {
             den Ladefortschritt zeigt der TV im Tutorial */}
         {!overlayHidden && (
           <div
-            className={`scene-loading${physicsReady ? ' scene-loading--done' : ''}`}
+            className={`scene-loading${sceneReady ? ' scene-loading--done' : ''}`}
             onTransitionEnd={() => setOverlayHidden(true)}
           />
         )}
