@@ -4,7 +4,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Physics, CuboidCollider, RigidBody } from '@react-three/rapier'
 import { EffectComposer, SMAA, Bloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
-import './Scene.css'
+import './MessyDeskScene.css'
 
 import { RESPAWN_FALL_Y } from './scene/constants'
 import { respawnRegistry } from './scene/respawnRegistry'
@@ -65,7 +65,7 @@ function SceneWarmup({ onReady }: { onReady: () => void }) {
   return null
 }
 
-function Scene() {
+function MessyDeskScene() {
   const inputMode = useInputMode()
   const [hint, setHint] = useState(true)
   const [sceneReady, setSceneReady] = useState(false)
@@ -99,7 +99,7 @@ function Scene() {
 
   return (
     <EditorCtx.Provider value={{ editMode, select: setSelected }}>
-      <div className="scene-container">
+      <div className="messy-desk-scene-container">
         <Canvas
           shadows={{ type: THREE.PCFShadowMap }}
           camera={{ position: [0.050, 1.255, 0.404], fov: 90, near: 0.01, far: 100 }}
@@ -174,19 +174,19 @@ function Scene() {
             den Ladefortschritt zeigt der TV im Tutorial */}
         {!overlayHidden && (
           <div
-            className={`scene-loading${sceneReady ? ' scene-loading--done' : ''}`}
+            className={`messy-desk-scene-loading${sceneReady ? ' messy-desk-scene-loading--done' : ''}`}
             onTransitionEnd={() => setOverlayHidden(true)}
           />
         )}
 
         {editMode && (
-          <div className="scene-editor-bar">
+          <div className="messy-desk-scene-editor-bar">
             EDITOR · <b>[T]</b> Verschieben &nbsp;<b>[R]</b> Drehen &nbsp;<b>[S]</b> Skalieren &nbsp;<b>[F2]</b> Beenden &nbsp;<b>[ESC]</b> Abwählen
             &nbsp;— Koordinaten in der Konsole
           </div>
         )}
         {!editMode && hint && (
-          <div className="scene-hint">
+          <div className="messy-desk-scene-hint">
             {inputMode === 'touch'
               ? 'Tippen = greifen · 2 Finger (beim Greifen) = drehen & Abstand'
               : 'LMB = greifen · RMB (beim Greifen) = drehen · Scroll = Abstand · F2 = Editor'
@@ -199,4 +199,4 @@ function Scene() {
   )
 }
 
-export default Scene
+export default MessyDeskScene

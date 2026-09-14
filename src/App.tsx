@@ -2,12 +2,12 @@ import { lazy, Suspense, useCallback, useState } from 'react'
 import './App.css'
 import TopBar from './TopBar'
 import TutorialScene from './TutorialScene'
-import { preloadMainScene } from './sceneLoader'
+import { preloadMessyDeskScene } from './sceneLoader'
 
 // Nicht schon beim Seitenstart laden – das passiert, sobald im Tutorial eine CD eingelegt wird (useTvScreen)
-const Scene = lazy(preloadMainScene)
+const MessyDeskScene = lazy(preloadMessyDeskScene)
 
-type SceneKey = 'tutorial' | 'main'
+type SceneKey = 'tutorial' | 'messyDesk'
 type TransitionPhase = 'idle' | 'hiding' | 'revealing'
 
 function App() {
@@ -36,9 +36,9 @@ function App() {
       <TopBar />
       <div className="app-wrapper">
         {currentScene === 'tutorial'
-          ? <TutorialScene onExit={() => switchScene('main')} />
-          // Scene fängt das Laden im Canvas mit einer eigenen Suspense-Grenze ab – diese hier wartet nur auf den Code
-          : <Suspense fallback={null}><Scene /></Suspense>}
+          ? <TutorialScene onExit={() => switchScene('messyDesk')} />
+          // MessyDeskScene fängt das Laden im Canvas mit einer eigenen Suspense-Grenze ab – diese hier wartet nur auf den Code
+          : <Suspense fallback={null}><MessyDeskScene /></Suspense>}
         <div
           className={`scene-transition-overlay${transitionPhase === 'hiding' ? ' scene-transition-overlay--active' : ''}`}
           onTransitionEnd={handleTransitionEnd}

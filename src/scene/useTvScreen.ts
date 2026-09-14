@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { insertedDisc, type CdInfo } from './cdRegistry'
-import { preloadMainScene, mainSceneLoadProgress } from '../sceneLoader'
+import { preloadMessyDeskScene, messyDeskSceneLoadProgress } from '../sceneLoader'
 
 const W = 320
 const H = 240
@@ -154,12 +154,12 @@ export function useTvScreen() {
       seenDisc.current  = disc
       loadStart.current = t
       // Fehler landen in der Konsole – der Balken bleibt dann stehen und F bleibt gesperrt
-      if (disc) preloadMainScene().catch(console.error)
+      if (disc) preloadMessyDeskScene().catch(console.error)
     }
 
     // Balken folgt dem langsameren von Mindestdauer und echtem Ladefortschritt
     const timedSegments  = Math.floor(((t - loadStart.current) / LOAD_DURATION) * BAR_SEGMENTS)
-    const loadedSegments = Math.floor(mainSceneLoadProgress() * BAR_SEGMENTS)
+    const loadedSegments = Math.floor(messyDeskSceneLoadProgress() * BAR_SEGMENTS)
     const filled = disc ? Math.min(BAR_SEGMENTS, timedSegments, loadedSegments) : 0
     const ready  = fontLoaded && disc !== null && filled === BAR_SEGMENTS
     tvScreenState.readyToPlay = ready
