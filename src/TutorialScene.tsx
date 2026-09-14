@@ -22,17 +22,23 @@ const CRT_TV_ROTATION_Y = Math.PI
 const TABLE_TOP_Y = 0.8
 const TV_SCREEN_MATERIAL_NAME = 'TVScreen'
 const TUTORIAL_LOOK_AT = new THREE.Vector3(0, 0.4, 0)
-// Nah am Tisch tiefer und mit Blick auf die Tischplatte statt steil nach unten
+// Close to the table: lower and looking at the tabletop instead of steeply down
 const TUTORIAL_ZOOM: CameraZoom = {
   near: new THREE.Vector3(0, 1.35, 1.1),
   nearLookAt: new THREE.Vector3(0, 0.75, 0),
 }
 
+// Table, floor and walls use explicit colliders instead of colliders="cuboid": auto colliders are only
+// created one render after mount, and a slow first frame would let the CDs fall through before they exist
+const TABLE_W = 1.4
+const TABLE_D = 0.8
+
 function TableBox() {
   return (
-    <RigidBody type="fixed" colliders="cuboid" position={[0, 0.4, 0]}>
+    <RigidBody type="fixed" colliders={false} position={[0, TABLE_TOP_Y / 2, 0]}>
+      <CuboidCollider args={[TABLE_W / 2, TABLE_TOP_Y / 2, TABLE_D / 2]} />
       <mesh castShadow receiveShadow>
-        <boxGeometry args={[1.4, 0.8, 0.8]} />
+        <boxGeometry args={[TABLE_W, TABLE_TOP_Y, TABLE_D]} />
         <meshStandardMaterial color="#C8A165" roughness={0.85} dithering />
       </mesh>
     </RigidBody>
@@ -49,8 +55,8 @@ function CrtTv() {
     uTime: { value: 0 },
   }), [screenTexture])
 
-  // Bounding-Box im Modell-Space – vor dem Mount berechnet, damit der feste Collider
-  // direkt an der richtigen Stelle entsteht (Unterkante auf der Tischplatte)
+  // Bounding box in model space – computed before mount so the fixed collider
+  // is created in the right place right away (bottom edge on the tabletop)
   const bounds = useMemo(() => {
     scene.updateWorldMatrix(true, true)
     const box = new THREE.Box3().setFromObject(scene)
@@ -153,10 +159,16 @@ function LightCone() {
 
 const ROOM_SIZE = 6
 const WALL_HEIGHT = 3
+// Floor and walls are planes – their colliders get thickness behind the visible surface (local −z)
+const SURFACE_HALF_THICKNESS = 0.05
 
 function Floor() {
   return (
-    <RigidBody type="fixed" colliders="cuboid" rotation={[-Math.PI / 2, 0, 0]}>
+    <RigidBody type="fixed" colliders={false} rotation={[-Math.PI / 2, 0, 0]}>
+      <CuboidCollider
+        args={[ROOM_SIZE / 2, ROOM_SIZE / 2, SURFACE_HALF_THICKNESS]}
+        position={[0, 0, -SURFACE_HALF_THICKNESS]}
+      />
       <mesh receiveShadow>
         <planeGeometry args={[ROOM_SIZE, ROOM_SIZE]} />
         <meshStandardMaterial color="#2a2a2a" dithering />
@@ -177,7 +189,11 @@ function Walls() {
   return (
     <>
       {walls.map(({ position, rotationY }) => (
-        <RigidBody key={rotationY} type="fixed" colliders="cuboid" position={position} rotation={[0, rotationY, 0]}>
+        <RigidBody key={rotationY} type="fixed" colliders={false} position={position} rotation={[0, rotationY, 0]}>
+          <CuboidCollider
+            args={[ROOM_SIZE / 2, WALL_HEIGHT / 2, SURFACE_HALF_THICKNESS]}
+            position={[0, 0, -SURFACE_HALF_THICKNESS]}
+          />
           <mesh receiveShadow>
             <planeGeometry args={[ROOM_SIZE, WALL_HEIGHT]} />
             <meshStandardMaterial color="#2a2a2a" dithering />
@@ -193,14 +209,14 @@ function TutorialScene({ onExit }: { onExit: () => void }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      // Erst wenn der TV „Press F to play“ zeigt – CD eingelegt und Hauptszene fertig geladen
+      // Only once the TV shows "Press F to play" – CD inserted and main scene fully loaded
       if ((e.key === 'f' || e.key === 'F') && tvScreenState.readyToPlay) onExit()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onExit])
 
-  // grab ist global – beim Szenenwechsel keine Referenz auf einen entfernten Körper zurücklassen
+  // grab is global – don't leave a reference to a removed body behind on scene change
   useEffect(() => () => { grab.body = null }, [])
 
   return (
@@ -222,7 +238,7 @@ function TutorialScene({ onExit }: { onExit: () => void }) {
         />
         <LightCone />
 
-        {/* 120 Hz statt 60 Hz – dünne CDs dringen beim Aufprall sonst sichtbar in den Tisch ein */}
+        {/* 120 Hz instead of 60 Hz – otherwise thin CDs visibly sink into the table on impact */}
         <Physics gravity={[0, -9.81, 0]} timeStep={1 / 120}>
           <TableBox />
           <CrtTv />
@@ -235,7 +251,7 @@ function TutorialScene({ onExit }: { onExit: () => void }) {
 
           <GrabController />
 
-          {/* Respawn-Sensor: unsichtbarer Boden, löst Respawn aus wenn Objekte darunter fallen */}
+          {/* Respawn sensor: invisible floor that triggers a respawn when objects fall below it */}
           <RigidBody
             type="fixed"
             sensor
