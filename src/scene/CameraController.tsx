@@ -11,7 +11,7 @@ const LOOK_AT    = new THREE.Vector3(0, 1, -1)
 const MAX_OFFSET = 0.12
 const LERP_SPEED = 0.04
 
-export function CameraController() {
+export function CameraController({ lookAt = LOOK_AT }: { lookAt?: THREE.Vector3 } = {}) {
   const { camera } = useThree()
   const inputMode  = useInputMode()
   const basePos    = useRef(new THREE.Vector3())
@@ -20,10 +20,10 @@ export function CameraController() {
   const neutral    = useRef<{ beta: number; gamma: number } | null>(null)
 
   useEffect(() => {
-    camera.lookAt(LOOK_AT)
+    camera.lookAt(lookAt)
     basePos.current.copy(camera.position)
     targetPos.current.copy(camera.position)
-  }, [camera])
+  }, [camera, lookAt])
 
   useEffect(() => {
     if (inputMode !== 'mouse') return
@@ -87,7 +87,7 @@ export function CameraController() {
       basePos.current.z
     )
     camera.position.lerp(targetPos.current, LERP_SPEED)
-    camera.lookAt(LOOK_AT)
+    camera.lookAt(lookAt)
   })
 
   return null
