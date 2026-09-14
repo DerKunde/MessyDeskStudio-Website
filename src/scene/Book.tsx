@@ -6,6 +6,7 @@ import type { RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
 import { grab } from './grab'
 import useRespawn from './useRespawn'
+import { useHoverCursor } from './useHoverCursor'
 import { RESPAWN_DELAY } from './constants'
 import { useIgnitable } from './useIgnitable'
 
@@ -123,6 +124,7 @@ export function Book({ position, color, burning: defaultBurning = false }: {
 
   const { burning, onCollisionEnter, onCollisionExit, reset } = useIgnitable(rbRef, defaultBurning)
   useRespawn(rbRef, position, { delay: RESPAWN_DELAY, onRespawn: () => { reset(); burnTime.current = 0; particles.current = [] } })
+  const grabCursor = useHoverCursor('grab')
 
   useFrame((_, delta) => {
     if (!burning) return
@@ -201,6 +203,7 @@ export function Book({ position, color, burning: defaultBurning = false }: {
     >
       <mesh
         castShadow
+        {...grabCursor}
         onPointerDown={(e) => {
           if (e.button !== 0) return
           e.stopPropagation()

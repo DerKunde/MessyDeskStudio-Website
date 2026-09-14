@@ -20,3 +20,6 @@ export function Desk() {
     </RigidBody>
   )
 }
+
+// Beim Laden des Szenen-Codes vorab laden – wie die GLB-Modelle, siehe sceneLoader
+useLoader.preload(FBXLoader, deskUrl)

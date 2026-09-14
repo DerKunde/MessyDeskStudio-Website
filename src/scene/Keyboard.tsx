@@ -10,6 +10,7 @@ import {
 } from './constants'
 import { grab } from './grab'
 import useRespawn from './useRespawn'
+import { useHoverCursor } from './useHoverCursor'
 import { RESPAWN_DELAY } from './constants'
 import { PostIt } from './PostIt'
 import { useIgnitable } from './useIgnitable'
@@ -19,6 +20,7 @@ export function Keyboard({ position }: { position: [number, number, number] }) {
   const rbRef       = useRef<RapierRigidBody>(null)
   const { burning, onCollisionEnter, onCollisionExit, reset } = useIgnitable(rbRef)
   useRespawn(rbRef, position, { delay: RESPAWN_DELAY, onRespawn: reset })
+  const grabCursor  = useHoverCursor('grab')
   const pressed     = useRef<Set<string>>(new Set())
   const meshRefs    = useRef<Map<string, THREE.Mesh>>(new Map())
 
@@ -59,6 +61,7 @@ export function Keyboard({ position }: { position: [number, number, number] }) {
       {/* Base plate */}
       <mesh
         castShadow
+        {...grabCursor}
         onPointerDown={(e) => { if (e.button !== 0) return; e.stopPropagation(); grab.start(rbRef.current, e.distance) }}
       >
         <boxGeometry args={[KB_BASE_W, KB_BASE_H, KB_BASE_D]} />

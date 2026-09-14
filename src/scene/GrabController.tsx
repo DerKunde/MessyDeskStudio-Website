@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react'
 import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { grab } from './grab'
+import { cursor } from './cursor'
 import { useInputMode } from '../hooks/useInputMode'
 
 type PointerPos = { x: number; y: number }
@@ -18,6 +19,9 @@ export function GrabController() {
   const pinch          = useRef<PinchState | null>(null)
   const grabOffset     = useRef(new THREE.Vector3())
   const wasRotating    = useRef(false)
+
+  // Szenenwechsel während ein Objekt gehalten wird – Greif-Cursor nicht hängen lassen
+  useEffect(() => () => cursor.setGrabbing(false), [])
 
   useEffect(() => {
     const canvas = gl.domElement
@@ -109,10 +113,14 @@ export function GrabController() {
       const dy = e.clientY - lastXY.current.y
       lastXY.current = { x: e.clientX, y: e.clientY }
 
+      // RMB bei gehaltener LMB kommt als pointermove an (Chorded Button), nicht als pointerdown/up –
+      // deshalb wird der Dreh-Cursor hier über e.buttons gesteuert
       if ((e.buttons & 2) !== 0) {
         wasRotating.current = true
+        cursor.setRotating(true)
         applyRotation(dx, dy)
       } else {
+        cursor.setRotating(false)
         if (wasRotating.current) {
           // Erster Move nach RMB-Release: Offset berechnen damit Objekt nicht springt
           mouse.current.x = (e.clientX / canvas.clientWidth)  *  2 - 1
