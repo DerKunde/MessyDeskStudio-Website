@@ -3,13 +3,13 @@ import { Text } from '@react-three/drei'
 export function PostIt({ position }: { position: [number, number, number] }) {
   return (
     <group position={position} rotation={[Math.PI / 2, 0, 0.12]}>
-      {/* Post-it Zettel */}
+      {/* Note */}
       <mesh>
         <planeGeometry args={[0.09, 0.07]} />
         <meshStandardMaterial color="#FFE84D" roughness={0.9} />
       </mesh>
 
-      {/* Handschrift */}
+      {/* Handwriting */}
       <Text
         position={[0, 0, 0.001]}
         fontSize={0.018}

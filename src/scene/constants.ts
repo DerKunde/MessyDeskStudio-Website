@@ -1,5 +1,13 @@
 export const MOVE_SPEED = 4
 
+// ─── Respawn settings ─────────────────────────────────────────────────────────
+export const RESPAWN_FALL_Y  = 0.1    // Y height below which a respawn is triggered
+export const RESPAWN_DELAY   = 800   // ms until the object drops back onto the desk (0 = immediately)
+
+// ─── CD (also used by the PlayStation's CD tray) ─────────────────────────────
+export const CD_RADIUS    = 0.06
+export const CD_THICKNESS = 0.003
+
 // ─── Keyboard 3D layout constants ────────────────────────────────────────────
 export const KB_UNIT_W  = 0.026
 export const KB_UNIT_D  = 0.022

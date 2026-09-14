@@ -20,3 +20,6 @@ export function Desk() {
     </RigidBody>
   )
 }
+
+// Preload as soon as the scene code loads – like the GLB models, see sceneLoader
+useLoader.preload(FBXLoader, deskUrl)

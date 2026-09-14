@@ -5,6 +5,7 @@ import * as THREE from 'three'
 
 export type EditorCtxType = { editMode: boolean; select: (obj: THREE.Object3D | null) => void }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const EditorCtx = createContext<EditorCtxType>({ editMode: false, select: () => {} })
 
 export function Editable({ label, position, rotation, scale, children }: {

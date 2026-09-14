@@ -1,0 +1,19 @@
+/* Pixel cursors (16 px grid, scaled 2×) – standard cursors as fallback.
+   Hand cursors share the hotspot 16 16 so the image doesn't jump when switching.
+   SVGs live in public/ – Vite doesn't rewrite relative url() paths in dev mode */
+
+body.cursor-grab {
+  cursor: url('/cursors/grab.svg') 16 16, grab;
+}
+
+body.cursor-grabbing {
+  cursor: url('/cursors/grabbing.svg') 16 16, grabbing;
+}
+
+body.cursor-rotating {
+  cursor: url('/cursors/rotating.svg') 16 16, grabbing;
+}
+
+body.cursor-interact {
+  cursor: url('/cursors/interact.svg') 12 1, pointer;
+}

@@ -6,6 +6,21 @@
   bottom: 0;
 }
 
+.scene-transition-overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--color-dark, #111);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.scene-transition-overlay--active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;

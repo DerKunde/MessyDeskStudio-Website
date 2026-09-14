@@ -4,43 +4,232 @@ import { RigidBody } from '@react-three/rapier'
 import type { RapierRigidBody } from '@react-three/rapier'
 import * as THREE from 'three'
 import { grab } from './grab'
+import useRespawn from './useRespawn'
+import { useHoverCursor } from './useHoverCursor'
+import { RESPAWN_DELAY } from './constants'
+import { useIgnitable } from './useIgnitable'
 
-// Anzahl der Sprites die den Faden bilden
-const STRAND_COUNT = 26
+const SMOKE_HEIGHT = 0.22
+// Number of stored past positions.
+// uv.y=0 → current frame, uv.y=1 → oldest entry
+const HISTORY_SIZE = 64
+
+const vertexShader = `
+  uniform float uTime;
+  uniform float uSpeed;
+  uniform sampler2D uHistoryTex;
+  uniform vec2 uCurrentPos;
+  varying vec2 vUv;
+
+  void main() {
+    vUv = uv;
+
+    // Twist the plane into a rising 3D helix
+    float twist = uv.y * 3.5 + uTime * 0.35;
+    float r = position.x;
+
+    vec3 pos = position;
+    pos.x = cos(twist) * r;
+    pos.z = sin(twist) * r;
+
+    // S-curve: amplitude grows with movement speed
+    float turbulence = clamp(uSpeed * 6.0, 0.0, 1.0);
+    float amp = uv.y * uv.y * (0.018 + turbulence * 0.028);
+    float phase = uTime * 0.5;
+    pos.x += amp * (sin(uv.y * 3.14159 * 2.3 + phase) + 0.4 * sin(uv.y * 3.14159 * 4.8 + phase * 1.7));
+    pos.z += amp * 0.35 * sin(uv.y * 3.14159 * 1.9 + phase * 0.8 + 1.1);
+
+    // Physical trail: each height shows where the ember was at emission time.
+    // uv.y=0 → just emitted (current position), uv.y=1 → oldest smoke
+    vec2 histPos = texture2D(uHistoryTex, vec2(uv.y, 0.5)).rg;
+    pos.x += histPos.x - uCurrentPos.x;
+    pos.z += histPos.y - uCurrentPos.y;
+
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+  }
+`
+
+const fragmentShader = `
+  uniform sampler2D uTexture;
+  uniform float uTime;
+  uniform float uSpeed;
+  varying vec2 vUv;
+
+  void main() {
+    vec2 uv = vec2(vUv.x, vUv.y - uTime * 0.12);
+    float noise = texture2D(uTexture, uv).r;
+
+    // At high speed: wider smoothstep range → fragmented, torn-up smoke
+    float turbulence = clamp(uSpeed * 6.0, 0.0, 1.0);
+    float lo = mix(0.35, 0.18, turbulence);
+    float hi = mix(0.65, 0.82, turbulence);
+    float smoke = smoothstep(lo, hi, noise);
+
+    float fadeX = smoothstep(0.0, 0.25, vUv.x) * smoothstep(1.0, 0.75, vUv.x);
+    float fadeY = smoothstep(0.0, 0.08, vUv.y) * smoothstep(1.0, 0.5, vUv.y);
+    float alpha = smoke * fadeX * fadeY * mix(0.32, 0.42, turbulence);
+
+    gl_FragColor = vec4(0.78, 0.78, 0.78, alpha);
+  }
+`
+
+function generateNoiseTexture(): THREE.Texture {
+  const size = 256
+  const gridSize = 16
+
+  let seed = 42
+  const rand = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0
+    return seed / 0xffffffff
+  }
+
+  const grid: number[][] = Array.from({ length: gridSize }, () =>
+    Array.from({ length: gridSize }, rand)
+  )
+
+  const smoothstep = (t: number) => t * t * (3 - 2 * t)
+  const lerp = (a: number, b: number, t: number) => a + t * (b - a)
+
+  const sample = (x: number, y: number): number => {
+    const xi = Math.floor(x * gridSize)
+    const yi = Math.floor(y * gridSize)
+    const fx = smoothstep(x * gridSize - xi)
+    const fy = smoothstep(y * gridSize - yi)
+    const x0 = xi % gridSize
+    const x1 = (xi + 1) % gridSize
+    const y0 = yi % gridSize
+    const y1 = (yi + 1) % gridSize
+    return lerp(
+      lerp(grid[x0][y0], grid[x1][y0], fx),
+      lerp(grid[x0][y1], grid[x1][y1], fx),
+      fy
+    )
+  }
+
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')!
+  const imageData = ctx.createImageData(size, size)
+
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const nx = x / size
+      const ny = y / size
+      const v =
+        sample(nx,      ny)      * 0.5   +
+        sample(nx * 2,  ny * 2)  * 0.25  +
+        sample(nx * 4,  ny * 4)  * 0.125 +
+        sample(nx * 8,  ny * 8)  * 0.0625
+      const val = Math.round((v / 0.9375) * 255)
+      const idx = (y * size + x) * 4
+      imageData.data[idx]     = val
+      imageData.data[idx + 1] = val
+      imageData.data[idx + 2] = val
+      imageData.data[idx + 3] = 255
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0)
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.wrapS = THREE.RepeatWrapping
+  tex.wrapT = THREE.RepeatWrapping
+  return tex
+}
 
 export function Ashtray({ position }: { position: [number, number, number] }) {
   const rbRef = useRef<RapierRigidBody>(null)
+  const { reset, onCollisionEnter, onCollisionExit } = useIgnitable(rbRef, true)
+  useRespawn(rbRef, position, { delay: RESPAWN_DELAY, onRespawn: reset })
+  const grabCursor = useHoverCursor('grab')
+
   const emberRef = useRef<THREE.Mesh>(null)
+  const smokeRef = useRef<THREE.Mesh>(null)
   const smokeOrigin = useRef(new THREE.Vector3())
   const emberMatRef = useRef<THREE.MeshStandardMaterial>(null)
   const emberLightRef = useRef<THREE.PointLight>(null)
-  const spriteRefs = useRef<(THREE.Sprite | null)[]>([])
 
-  // Weiches rundes Segment-Textur für den Faden
-  const smokeTexture = useMemo(() => {
-    const size = 64
-    const canvas = document.createElement('canvas')
-    canvas.width = size
-    canvas.height = size
-    const ctx = canvas.getContext('2d')!
-    const grad = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2)
-    grad.addColorStop(0,   'rgba(200,200,200,1)')
-    grad.addColorStop(0.45,'rgba(185,185,185,0.7)')
-    grad.addColorStop(0.8, 'rgba(165,165,165,0.2)')
-    grad.addColorStop(1,   'rgba(140,140,140,0)')
-    ctx.fillStyle = grad
-    ctx.fillRect(0, 0, size, size)
-    return new THREE.CanvasTexture(canvas)
+  // Position history: RGBA float texture, HISTORY_SIZE × 1
+  // R = world X, G = world Z (Y isn't needed since the mesh rises anyway)
+  const historyData = useRef(new Float32Array(HISTORY_SIZE * 4))
+  const historyInitialized = useRef(false)
+  const smoothSpeed = useRef(0)
+  const historyTex = useMemo(() => {
+    const tex = new THREE.DataTexture(
+      historyData.current,
+      HISTORY_SIZE, 1,
+      THREE.RGBAFormat,
+      THREE.FloatType,
+    )
+    tex.magFilter = THREE.LinearFilter
+    tex.minFilter = THREE.LinearFilter
+    return tex
   }, [])
 
+  const noiseTexture = useMemo(() => generateNoiseTexture(), [])
+
+  const smokeMat = useMemo(() => new THREE.ShaderMaterial({
+    uniforms: {
+      uTexture:    { value: noiseTexture },
+      uTime:       { value: 0 },
+      uSpeed:      { value: 0 },
+      uHistoryTex: { value: historyTex },
+      uCurrentPos: { value: new THREE.Vector2() },
+    },
+    vertexShader,
+    fragmentShader,
+    transparent: true,
+    depthWrite:  false,
+    side:        THREE.DoubleSide,
+  }), [noiseTexture, historyTex])
+
   useFrame(({ clock }) => {
-    // Ember-Weltposition tracken
+    const t = clock.getElapsedTime()
+
     if (emberRef.current) {
       emberRef.current.getWorldPosition(smokeOrigin.current)
     }
 
-    // Glut pulsiert unregelmäßig
-    const t = clock.getElapsedTime()
+    // Initialize the history once the first real ember position is known
+    const d = historyData.current
+    if (!historyInitialized.current && smokeOrigin.current.lengthSq() > 0) {
+      for (let i = 0; i < HISTORY_SIZE; i++) {
+        d[i * 4]     = smokeOrigin.current.x
+        d[i * 4 + 1] = smokeOrigin.current.z
+      }
+      historyInitialized.current = true
+    }
+
+    // Shift the buffer forward, current position at index 0
+    for (let i = HISTORY_SIZE - 1; i > 0; i--) {
+      d[i * 4]     = d[(i - 1) * 4]
+      d[i * 4 + 1] = d[(i - 1) * 4 + 1]
+    }
+    d[0] = smokeOrigin.current.x
+    d[1] = smokeOrigin.current.z
+    historyTex.needsUpdate = true
+
+    // Derive speed from the last 8 history entries
+    const sdx = d[0] - d[8 * 4]
+    const sdz = d[1] - d[8 * 4 + 1]
+    smoothSpeed.current = THREE.MathUtils.lerp(
+      smoothSpeed.current,
+      Math.sqrt(sdx * sdx + sdz * sdz),
+      0.15
+    )
+
+    if (smokeRef.current) {
+      smokeRef.current.position.set(
+        smokeOrigin.current.x,
+        smokeOrigin.current.y + SMOKE_HEIGHT / 2,
+        smokeOrigin.current.z
+      )
+      smokeMat.uniforms.uTime.value = t
+      smokeMat.uniforms.uSpeed.value = smoothSpeed.current
+      smokeMat.uniforms.uCurrentPos.value.set(smokeOrigin.current.x, smokeOrigin.current.z)
+    }
+
+    // Ember pulse
     const pulse = 0.7 + 0.3 * Math.sin(t * 4.1) * Math.sin(t * 2.6 + 0.8)
     if (emberMatRef.current) {
       emberMatRef.current.emissiveIntensity = pulse * 1.6
@@ -48,48 +237,9 @@ export function Ashtray({ position }: { position: [number, number, number] }) {
     if (emberLightRef.current) {
       emberLightRef.current.intensity = pulse * 0.05
     }
-
-    // ── Rauch-Faden: Doppel-S-Kurve ──────────────────────────────────────────
-    const phase = t * 0.5        // langsame Gesamtbewegung
-    const totalHeight = 0.22     // Gesamthöhe des Fadens
-
-    for (let i = 0; i < STRAND_COUNT; i++) {
-      const s = i / (STRAND_COUNT - 1)  // 0 = Glut, 1 = oben
-
-      // Doppel-S: zwei überlagerte Sinuswellen → doppelte S-Form
-      const amp = 0.002 + s * s * 0.024       // Amplitude wächst quadratisch nach oben
-      const wx =
-        amp * Math.sin(s * Math.PI * 2.3 + phase) +
-        amp * 0.4 * Math.sin(s * Math.PI * 4.8 + phase * 1.7)
-      const wz =
-        amp * 0.35 * Math.sin(s * Math.PI * 1.9 + phase * 0.8 + 1.1)
-
-      const sprite = spriteRefs.current[i]
-      if (!sprite) return
-
-      sprite.position.set(
-        smokeOrigin.current.x + wx,
-        smokeOrigin.current.y + s * totalHeight,
-        smokeOrigin.current.z + wz
-      )
-
-      // Opacity: kurzes Einblenden unten, sanft ausblenden oben
-      let opacity = 0
-      if (s < 0.06)     opacity = (s / 0.06) * 0.4
-      else if (s < 0.55) opacity = 0.4
-      else              opacity = 0.4 * (1 - (s - 0.55) / 0.45)
-      ;(sprite.material as THREE.SpriteMaterial).opacity = opacity
-
-      // Breite: sehr schmal unten, wächst nach oben
-      // Höhe: Segment-Höhe mit Überlappung für Kontinuität
-      const segH = (totalHeight / STRAND_COUNT) * 2.0
-      const segW = 0.0008 + s * s * 0.012
-      sprite.scale.set(Math.max(0.0005, segW), segH, 1)
-    }
   })
 
   return (
-    // Äußere Gruppe ohne Transform — Sprites leben in World-Space
     <group>
       <RigidBody
         ref={rbRef}
@@ -99,11 +249,14 @@ export function Ashtray({ position }: { position: [number, number, number] }) {
         friction={0.8}
         ccd
         position={position}
+        onCollisionEnter={onCollisionEnter}
+        onCollisionExit={onCollisionExit}
       >
-        {/* Aschenbecher-Körper */}
+        {/* Ashtray body */}
         <mesh
           castShadow
           receiveShadow
+          {...grabCursor}
           onPointerDown={(e) => {
             if (e.button !== 0) return
             e.stopPropagation()
@@ -114,29 +267,29 @@ export function Ashtray({ position }: { position: [number, number, number] }) {
           <meshStandardMaterial color="#252525" roughness={0.35} metalness={0.45} />
         </mesh>
 
-        {/* Innere Vertiefung */}
+        {/* Inner recess */}
         <mesh position={[0, 0.006, 0]}>
           <cylinderGeometry args={[0.05, 0.05, 0.006, 32]} />
           <meshStandardMaterial color="#181818" roughness={0.95} />
         </mesh>
 
-        {/* Zigaretten-Gruppe */}
+        {/* Cigarette */}
         <group position={[0.004, 0.017, 0.008]} rotation={[0, Math.PI / 7, 0]}>
           <group rotation={[0, 0, Math.PI / 15]}>
 
-            {/* Weißer Körper — Länge 0.068, Zentrum x=0, Spitze bei x=+0.034 */}
+            {/* Paper body */}
             <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
               <cylinderGeometry args={[0.004, 0.004, 0.068, 12]} />
               <meshStandardMaterial color="#ede9db" roughness={0.95} />
             </mesh>
 
-            {/* Filter (orange-braun) am anderen Ende */}
+            {/* Filter */}
             <mesh position={[-0.043, 0, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
               <cylinderGeometry args={[0.004, 0.004, 0.018, 12]} />
               <meshStandardMaterial color="#c87c32" roughness={0.85} />
             </mesh>
 
-            {/* Glut-Zylinder — direkt an der Körperspitze (x=0.034 bis x=0.042) */}
+            {/* Ember */}
             <mesh ref={emberRef} position={[0.038, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
               <cylinderGeometry args={[0.004, 0.003, 0.008, 12]} />
               <meshStandardMaterial
@@ -148,7 +301,6 @@ export function Ashtray({ position }: { position: [number, number, number] }) {
               />
             </mesh>
 
-            {/* Sehr dezente Lichtquelle — nur nächste Umgebung */}
             <pointLight
               ref={emberLightRef}
               position={[0.038, 0, 0]}
@@ -161,17 +313,10 @@ export function Ashtray({ position }: { position: [number, number, number] }) {
         </group>
       </RigidBody>
 
-      {/* Rauch-Faden Sprites — World-Space */}
-      {Array.from({ length: STRAND_COUNT }, (_, i) => (
-        <sprite key={i} ref={el => { spriteRefs.current[i] = el }}>
-          <spriteMaterial
-            map={smokeTexture}
-            transparent
-            opacity={0}
-            depthWrite={false}
-          />
-        </sprite>
-      ))}
+      {/* Smoke – shader plane in world space, outside the rigid body */}
+      <mesh ref={smokeRef} material={smokeMat}>
+        <planeGeometry args={[0.014, SMOKE_HEIGHT, 1, 24]} />
+      </mesh>
     </group>
   )
 }
