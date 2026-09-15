@@ -8,14 +8,7 @@
   --text:          #E9EDDE;
   --text-h:        #E9EDDE;
   --bg:            #211A1D;
-  --border:        #41521F;
   --code-bg:       rgba(233, 237, 222, 0.08);
-  --accent:        #6320EE;
-  --accent-bg:     rgba(99, 32, 238, 0.15);
-  --accent-border: rgba(99, 32, 238, 0.5);
-  --social-bg:     rgba(233, 237, 222, 0.08);
-  --shadow:
-    rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
 
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
@@ -79,15 +72,11 @@ p {
   margin: 0;
 }
 
-code,
-.counter {
+code {
   font-family: var(--mono);
   display: inline-flex;
   border-radius: 4px;
   color: var(--text-h);
-}
-
-code {
   font-size: 15px;
   line-height: 135%;
   padding: 4px 8px;
