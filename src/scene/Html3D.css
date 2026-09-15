@@ -1,0 +1,16 @@
+/* CSS3D layer – below the WebGL canvas, HTML shows through the occluder holes */
+.html3d-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* WebGL canvas above the CSS3D layer – pointer-events stays 'auto' (grab mechanics) */
+.html3d-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+}

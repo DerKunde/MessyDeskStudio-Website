@@ -32,7 +32,7 @@ export function NeonSign() {
       0.04 * Math.sin(t.current * 31.4 + 2.1) +
       0.02 * Math.sin(t.current * 53.2 + 0.7)
     for (const mat of emissiveMats.current) {
-      // eslint-disable-next-line react-hooks/immutability
+      // eslint-disable-next-line react-hooks/immutability -- R3F: mutating three.js objects per frame is intended
       mat.emissiveIntensity = flicker
     }
   })

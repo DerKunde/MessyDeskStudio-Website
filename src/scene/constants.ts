@@ -1,5 +1,3 @@
-export const MOVE_SPEED = 4
-
 // ─── Respawn settings ─────────────────────────────────────────────────────────
 export const RESPAWN_FALL_Y  = 0.1    // Y height below which a respawn is triggered
 export const RESPAWN_DELAY   = 800   // ms until the object drops back onto the desk (0 = immediately)
@@ -9,9 +7,9 @@ export const CD_RADIUS    = 0.06
 export const CD_THICKNESS = 0.003
 
 // ─── Keyboard 3D layout constants ────────────────────────────────────────────
-export const KB_UNIT_W  = 0.026
+const KB_UNIT_W  = 0.026
 export const KB_UNIT_D  = 0.022
-export const KB_GAP     = 0.003
+const KB_GAP     = 0.003
 export const KB_BASE_W  = 0.44
 export const KB_BASE_D  = 0.15
 export const KB_BASE_H  = 0.025
@@ -19,7 +17,7 @@ export const KB_KEY_H   = 0.007
 export const KB_Y_REST    = KB_BASE_H / 2 + KB_KEY_H / 2
 export const KB_Y_PRESSED = KB_Y_REST - 0.003
 
-export const KB_ROWS: { code: string; w?: number }[][] = [
+const KB_ROWS:{ code: string; w?: number }[][] = [
   [
     { code: 'Backquote' }, { code: 'Digit1' }, { code: 'Digit2' },
     { code: 'Digit3' },    { code: 'Digit4' }, { code: 'Digit5' },
@@ -59,7 +57,7 @@ export const KB_ROWS: { code: string; w?: number }[][] = [
 
 export type KbKeyInfo = { code: string; x: number; z: number; keyW: number }
 
-export function buildKbLayout(): KbKeyInfo[] {
+function buildKbLayout(): KbKeyInfo[] {
   const totalW  = 15 * KB_UNIT_W + 14 * KB_GAP
   const totalD  = 5  * KB_UNIT_D +  4 * KB_GAP
   const startX  = -(KB_BASE_W / 2) + (KB_BASE_W - totalW) / 2
