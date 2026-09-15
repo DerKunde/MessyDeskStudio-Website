@@ -207,6 +207,7 @@ export function Ashtray({ position }: { position: [number, number, number] }) {
     }
     d[0] = smokeOrigin.current.x
     d[1] = smokeOrigin.current.z
+    // eslint-disable-next-line react-hooks/immutability -- R3F: mutating three.js objects per frame is intended
     historyTex.needsUpdate = true
 
     // Derive speed from the last 8 history entries
@@ -224,9 +225,11 @@ export function Ashtray({ position }: { position: [number, number, number] }) {
         smokeOrigin.current.y + SMOKE_HEIGHT / 2,
         smokeOrigin.current.z
       )
+      /* eslint-disable react-hooks/immutability -- R3F: mutating three.js objects per frame is intended */
       smokeMat.uniforms.uTime.value = t
       smokeMat.uniforms.uSpeed.value = smoothSpeed.current
       smokeMat.uniforms.uCurrentPos.value.set(smokeOrigin.current.x, smokeOrigin.current.z)
+      /* eslint-enable react-hooks/immutability */
     }
 
     // Ember pulse
