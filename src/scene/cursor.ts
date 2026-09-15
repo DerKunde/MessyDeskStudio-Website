@@ -1,7 +1,7 @@
 import './cursor.css'
 
 export type HoverCursor = 'grab' | 'interact'
-export type CursorMode  = HoverCursor | 'grabbing' | 'rotating' | null
+type CursorMode  =HoverCursor | 'grabbing' | 'rotating' | null
 
 const MODES = ['grab', 'grabbing', 'rotating', 'interact'] as const
 

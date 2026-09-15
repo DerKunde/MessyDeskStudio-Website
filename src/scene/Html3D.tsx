@@ -1,12 +1,11 @@
-import { createContext, useContext, useLayoutEffect, useMemo, useRef, useState, useEffect, type ReactNode } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState, useEffect, type ReactNode } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
 import { CSS3DObject, CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer.js'
 import * as ReactDOMClient from 'react-dom/client'
 import * as THREE from 'three'
+import './Html3D.css'
 
 // ─── Renderer setup ──────────────────────────────────────────────────────────
-
-const CSS3DContext = createContext<CSS3DRenderer | null>(null)
 
 export function Html3DRenderer({ children }: { children: ReactNode }) {
   const { gl } = useThree()
@@ -14,25 +13,13 @@ export function Html3DRenderer({ children }: { children: ReactNode }) {
 
   useLayoutEffect(() => {
     const dom = renderer.domElement
-    /* eslint-disable react-hooks/immutability */
-    dom.style.position = 'absolute'
-    dom.style.top = '0'
-    dom.style.left = '0'
-    dom.style.pointerEvents = 'none'
-    dom.style.zIndex = '5'
-
-    // Put the WebGL canvas above the CSS3D layer — pointer-events stays 'auto' (grab mechanics)
-    gl.domElement.style.position = 'absolute'
-    gl.domElement.style.top = '0'
-    gl.domElement.style.left = '0'
-    gl.domElement.style.zIndex = '10'
-    /* eslint-enable react-hooks/immutability */
+    dom.classList.add('html3d-layer')
+    gl.domElement.classList.add('html3d-canvas')
 
     gl.domElement.parentElement?.appendChild(dom)
     return () => {
       gl.domElement.parentElement?.removeChild(dom)
-      gl.domElement.style.position = ''
-      gl.domElement.style.zIndex = ''
+      gl.domElement.classList.remove('html3d-canvas')
     }
   }, [renderer, gl])
 
@@ -41,7 +28,7 @@ export function Html3DRenderer({ children }: { children: ReactNode }) {
     renderer.render(sc, cam)
   }, 1)
 
-  return <CSS3DContext.Provider value={renderer}>{children}</CSS3DContext.Provider>
+  return <>{children}</>
 }
 
 // ─── Html3D component ────────────────────────────────────────────────────────
@@ -124,9 +111,4 @@ export function Html3D({ children, width, height }: Html3DProps) {
       <primitive object={css3DObject} />
     </>
   )
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function useHtml3DRenderer() {
-  return useContext(CSS3DContext)
 }
